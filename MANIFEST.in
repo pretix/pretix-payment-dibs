@@ -1,0 +1,3 @@
+recursive-include pretix_paymentdibs/static *
+recursive-include pretix_paymentdibs/templates *
+recursive-include pretix_paymentdibs/locale *
