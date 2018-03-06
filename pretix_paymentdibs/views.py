@@ -25,7 +25,7 @@ def redirect_view(request, *args, **kwargs):
     callback_url = build_absolute_uri(request.event, 'plugins:pretix_paymentdibs:callback')
     accept_url = build_absolute_uri(request.event, 'plugins:pretix_paymentdibs:return')
 
-    template = 'pretixplugins/pretix_paymentdibs/redirect.html'
+    template = 'pretix_paymentdibs/redirect.html'
     ctx = {
         'order_id': order_id,
         'order': order,
