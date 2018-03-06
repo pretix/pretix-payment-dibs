@@ -1,0 +1,29 @@
+{% extends "pretixpresale/base.html" %}
+
+{% load i18n %}
+{% load bootstrap3 %}
+{% load staticfiles %}
+{% load compress %}
+
+{% block thetitle %}{% trans "Redirecting to DIBS payment" %}{% endblock %}
+
+{% block page %}
+<h1>{% trans "Redirecting to DIBS payment" %}</h1>
+
+<form method="post" action="https://payment.architrade.com/paymentweb/start.action" accept-charset="utf-8">
+	<input type="hidden" name="accepturl" value="{{ accept_url }}">
+	<input type="hidden" name="amount" value="{{ amount }}">
+	<input type="hidden" name="currency" value="{{ currency }}">
+	<input type="hidden" name="merchant" value="{{ merchant_id }}">
+	<input type="hidden" name="orderid" value="{{ order.code }}">
+	{% if callback_url %}
+	<input type="hidden" name="callbackurl" value="{{ callback_url }}">
+	{% endif %}
+	{% if test_mode %}
+	<input type="hidden" name="test" value="1">
+	{% endif %}
+	<button class="btn btn-primary btn-block" type="submit">{% trans "Click here if you are not automatically redirected to DIBS" %}</button>
+</form>
+
+<script src="{% static "pretix_paymentdibs/redirect.js" %}"></script>
+{% endblock %}

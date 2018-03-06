@@ -4,7 +4,7 @@ from django.utils.translation import ugettext_lazy
 
 class PluginApp(AppConfig):
     name = 'pretix_paymentdibs'
-    verbose_name = 'Credit card payment using DIBS'
+    verbose_name = 'DIBS'
 
     class PretixPluginMeta:
         name = ugettext_lazy('Credit card payment using DIBS')
