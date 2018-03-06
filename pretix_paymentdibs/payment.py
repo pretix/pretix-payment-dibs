@@ -1,19 +1,15 @@
 import json
 import logging
 from collections import OrderedDict
-from typing import Any
 
 from django import forms
-from django.http import HttpRequest
-from django.shortcuts import render
 from django.template.loader import get_template
-from django.utils.translation import ugettext as __, ugettext_lazy as _
-from jinja2.nodes import Dict
-
+from django.utils.translation import ugettext_lazy as _
 from pretix.base.payment import BasePaymentProvider
 from pretix.multidomain.urlreverse import build_absolute_uri
 
 logger = logging.getLogger('pretix.plugins.payment_dibs')
+
 
 class DIBS(BasePaymentProvider):
     identifier = 'dibs'
@@ -65,7 +61,6 @@ class DIBS(BasePaymentProvider):
         return template.render(ctx)
 
     def payment_perform(self, request, order) -> str:
-        # @see https://docs.pretix.eu/en/latest/development/api/payment.html#pretix.base.payment.pretix.base.payment.BasePaymentProvider.BasePaymentProvider.payment_perform
         return self._redirect_to_dibs(request, order)
 
     def order_pending_render(self, request, order) -> str:
@@ -75,7 +70,7 @@ class DIBS(BasePaymentProvider):
 
     def order_paid_render(self, request, order) -> str:
         template = get_template('pretixplugins/pretix_paymentdibs/payment_paid.html')
-        info = json.loads(order.payment_info) if order.payment_info != None else None
+        info = None if order.payment_info is None else json.loads(order.payment_info)
         ctx = {'request': request, 'order': order, 'info': info}
         return template.render(ctx)
 

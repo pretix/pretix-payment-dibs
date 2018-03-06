@@ -1,8 +1,7 @@
 from django.conf.urls import include, url
-
 from pretix.multidomain import event_url
 
-from .views import abort, redirect_view, success, callback
+from .views import abort, callback, redirect_view, success
 
 # Frontend patterns
 event_patterns = [

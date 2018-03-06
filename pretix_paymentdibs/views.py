@@ -2,18 +2,15 @@ import json
 import logging
 
 from django.http import HttpResponse
-from django.shortcuts import render, redirect
-from django.template.loader import get_template
+from django.shortcuts import redirect, render
 from django.views.decorators.clickjacking import xframe_options_exempt
 from django.views.decorators.csrf import csrf_exempt
-
 from pretix.base.models import Order
-from pretix.helpers.urls import build_absolute_uri
-from pretix.helpers.urls import build_absolute_uri as build_global_uri
-from pretix.multidomain.urlreverse import build_absolute_uri
 from pretix.base.services.orders import mark_order_paid
+from pretix.multidomain.urlreverse import build_absolute_uri
 
 logger = logging.getLogger('pretix.plugins.payment_dibs')
+
 
 @xframe_options_exempt
 def redirect_view(request, *args, **kwargs):
@@ -42,9 +39,10 @@ def redirect_view(request, *args, **kwargs):
 
     return render(request, template, ctx)
 
-# @see https://tech.dibspayment.com/D2/Hosted/Output_parameters/Return_pages
+
 @csrf_exempt
 def success(request, *args, **kwargs):
+    # @see https://tech.dibspayment.com/D2/Hosted/Output_parameters/Return_pages
     parameters = request.POST if request.method == 'POST' else request.GET
     order_id = parameters.get('orderid')
     order = Order.objects.get(code=order_id)
@@ -58,8 +56,10 @@ def success(request, *args, **kwargs):
 
     return redirect(build_absolute_uri(request.event, 'presale:event.order', kwargs=urlkwargs))
 
+
 def abort(request, **kwargs):
     raise Exception('abort')
+
 
 @csrf_exempt
 def callback(request, **kwargs):
