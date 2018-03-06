@@ -3,10 +3,10 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2018-03-06 15:27+0100\n"
-"PO-Revision-Date: \n"
+"PO-Revision-Date: 2018-03-06 15:32+0100\n"
 "Last-Translator: Mikkel Ricky\n"
 "Language-Team: \n"
-"Language: de\n"
+"Language: da\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -40,13 +40,13 @@ msgstr ""
 
 #: pretix_paymentdibs/templates/pretix_paymentdibs/payment_paid.html:5
 msgid "DIBS payment info"
-msgstr ""
+msgstr "Betalingsoplysninger fra DIBS"
 
 #: pretix_paymentdibs/templates/pretix_paymentdibs/redirect.html:8
 #: pretix_paymentdibs/templates/pretix_paymentdibs/redirect.html:11
 msgid "Redirecting to DIBS payment"
-msgstr ""
+msgstr "Viderestiller til DIBS' betalingsvindue"
 
 #: pretix_paymentdibs/templates/pretix_paymentdibs/redirect.html:25
 msgid "Click here if you are not automatically redirected to DIBS"
-msgstr ""
+msgstr "Tryk her hvis du ikke automatisk bliver viderestillet"
