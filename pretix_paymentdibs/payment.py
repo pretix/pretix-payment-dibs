@@ -25,6 +25,7 @@ class DIBS(BasePaymentProvider):
                 ('test_mode',
                  forms.BooleanField(
                      label=_('Test mode'),
+                     required=False,
                      initial=False,
                      help_text=_('If "Test mode" is checked, payments will run in test mode '
                                  '(cf. <a target="_blank" rel="noopener" href="{docs_url}">{docs_url}</a>)').format(
