@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-03-06 15:27+0100\n"
-"PO-Revision-Date: 2018-03-06 15:32+0100\n"
+"POT-Creation-Date: 2018-03-19 14:48+0100\n"
+"PO-Revision-Date: 2018-03-19 14:49+0100\n"
 "Last-Translator: Mikkel Ricky\n"
 "Language-Team: \n"
 "Language: da\n"
@@ -17,30 +17,43 @@ msgstr ""
 
 #: pretix_paymentdibs/payment.py:16
 msgid "DIBS"
-msgstr ""
+msgstr "DIBS"
 
 #: pretix_paymentdibs/payment.py:27
 msgid "Test mode"
 msgstr ""
 
-#: pretix_paymentdibs/payment.py:29
+#: pretix_paymentdibs/payment.py:30
 #, python-brace-format
 msgid ""
 "If \"Test mode\" is checked, payments will run in test mode (cf. <a target="
 "\"_blank\" rel=\"noopener\" href=\"{docs_url}\">{docs_url}</a>)"
 msgstr ""
 
-#: pretix_paymentdibs/payment.py:36
+#: pretix_paymentdibs/payment.py:37
 msgid "Merchant ID"
 msgstr ""
 
-#: pretix_paymentdibs/payment.py:39
+#: pretix_paymentdibs/payment.py:40
 msgid "The Merchant ID issued by DIBS"
 msgstr ""
 
-#: pretix_paymentdibs/templates/pretix_paymentdibs/payment_paid.html:5
+#: pretix_paymentdibs/templates/pretix_paymentdibs/checkout_confirm.html:5
+msgid "You will be redirected to DIBS after placing your order."
+msgstr "Du bliver viderestillet til DIBS efter at have afgivet din ordre."
+
+#: pretix_paymentdibs/templates/pretix_paymentdibs/order_paid.html:6
 msgid "DIBS payment info"
 msgstr "Betalingsoplysninger fra DIBS"
+
+#: pretix_paymentdibs/templates/pretix_paymentdibs/order_paid.html:9
+#, python-format
+msgid ""
+"%(amount)s (%(currency)s) has been reserved on your payment card "
+"(%(cardno)s)."
+msgstr ""
+"Et beløb stort %(currency)s %(amount)s er blevet reserveret på dit "
+"betalingskort (%(cardno)s)."
 
 #: pretix_paymentdibs/templates/pretix_paymentdibs/redirect.html:8
 #: pretix_paymentdibs/templates/pretix_paymentdibs/redirect.html:11

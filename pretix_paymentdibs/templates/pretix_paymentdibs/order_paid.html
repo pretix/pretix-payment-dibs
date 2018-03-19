@@ -1,0 +1,11 @@
+{% load i18n %}
+{% load money %}
+{% load dibs_extras %}
+
+<div class="dibs-payment-info">
+  <div class="header">{% trans "DIBS payment info" %}</div>
+
+  <p>
+    {% blocktrans with currency=info.currency amount=info.amount|dibs_amount|floatformat:2 cardno=info.cardnomask %}{{ amount }} ({{ currency }}) has been reserved on your payment card ({{ cardno }}).{% endblocktrans %}
+  </p>
+</div>

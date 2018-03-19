@@ -49,7 +49,7 @@ class DIBS(BasePaymentProvider):
         return True
 
     def payment_form_render(self, request) -> str:
-        template = get_template('pretix_paymentdibs/checkout_payment_form.html')
+        template = get_template('pretix_paymentdibs/payment_form.html')
         ctx = {'request': request, 'event': self.event, 'settings': self.settings}
         return template.render(ctx)
 
@@ -65,12 +65,17 @@ class DIBS(BasePaymentProvider):
         return self._redirect_to_dibs(request, order)
 
     def order_pending_render(self, request, order) -> str:
-        template = get_template('pretix_paymentdibs/payment_pending.html')
+        template = get_template('pretix_paymentdibs/order_pending.html')
         ctx = {'request': request, 'order': order}
         return template.render(ctx)
 
+    def order_pending_mail_render(self, order) -> str:
+        template = get_template('pretix_paymentdibs/order_pending_mail.html')
+        ctx = {'order': order}
+        return template.render(ctx)
+
     def order_paid_render(self, request, order) -> str:
-        template = get_template('pretix_paymentdibs/payment_paid.html')
+        template = get_template('pretix_paymentdibs/order_paid.html')
         info = None if order.payment_info is None else json.loads(order.payment_info)
         ctx = {'request': request, 'order': order, 'info': info}
         return template.render(ctx)
