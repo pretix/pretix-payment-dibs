@@ -50,7 +50,12 @@ class DIBS(BasePaymentProvider):
 
     def payment_form_render(self, request) -> str:
         template = get_template('pretix_paymentdibs/payment_form.html')
-        ctx = {'request': request, 'event': self.event, 'settings': self.settings}
+        ctx = {
+            'request': request,
+            'event': self.event,
+            'settings': self.settings,
+            'info': request.GET
+        }
         return template.render(ctx)
 
     def checkout_prepare(self, request, cart):
@@ -58,7 +63,11 @@ class DIBS(BasePaymentProvider):
 
     def checkout_confirm_render(self, request) -> str:
         template = get_template('pretix_paymentdibs/checkout_confirm.html')
-        ctx = {'request': request, 'event': self.event, 'settings': self.settings}
+        ctx = {
+            'request': request,
+            'event': self.event,
+            'settings': self.settings
+        }
         return template.render(ctx)
 
     def payment_perform(self, request, order) -> str:
@@ -66,18 +75,30 @@ class DIBS(BasePaymentProvider):
 
     def order_pending_render(self, request, order) -> str:
         template = get_template('pretix_paymentdibs/order_pending.html')
-        ctx = {'request': request, 'order': order}
+        ctx = {
+            'request': request,
+            'event': self.event,
+            'order': order
+        }
         return template.render(ctx)
 
     def order_pending_mail_render(self, order) -> str:
         template = get_template('pretix_paymentdibs/order_pending_mail.html')
-        ctx = {'order': order}
+        ctx = {
+            'event': self.event,
+            'order': order
+        }
         return template.render(ctx)
 
     def order_paid_render(self, request, order) -> str:
         template = get_template('pretix_paymentdibs/order_paid.html')
         info = None if order.payment_info is None else json.loads(order.payment_info)
-        ctx = {'request': request, 'order': order, 'info': info}
+        ctx = {
+            'request': request,
+            'order': order,
+            'event': self.event,
+            'info': info
+        }
         return template.render(ctx)
 
     def order_can_retry(self, order):

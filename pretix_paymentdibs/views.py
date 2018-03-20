@@ -3,6 +3,7 @@ import logging
 
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
+from django.template.loader import get_template
 from django.views.decorators.clickjacking import xframe_options_exempt
 from django.views.decorators.csrf import csrf_exempt
 from pretix.base.models import Order
@@ -72,9 +73,14 @@ def callback(request, **kwargs):
     # @see https://tech.dibspayment.com/nodeaddpage/toolboxstatuscodes
     status_code = parameters.get('statuscode')
 
-    logger.info(['callback', __name__, json.dumps(parameters)])
-
     if int(status_code) == 2:
-        mark_order_paid(order, 'dibs', send_mail=True, info=json.dumps(parameters))
+        template = get_template('pretix_paymentdibs/mail_text.html')
+        ctx = {
+            'order': order,
+            'info': parameters
+        }
+
+        mail_text = template.render(ctx)
+        mark_order_paid(order, 'dibs', send_mail=True, info=json.dumps(parameters), mail_text=mail_text)
 
     return HttpResponse(status=200)

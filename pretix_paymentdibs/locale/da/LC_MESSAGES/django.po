@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-03-19 14:48+0100\n"
-"PO-Revision-Date: 2018-03-19 14:49+0100\n"
+"POT-Creation-Date: 2018-03-20 15:42+0100\n"
+"PO-Revision-Date: 2018-03-20 15:43+0100\n"
 "Last-Translator: Mikkel Ricky\n"
 "Language-Team: \n"
 "Language: da\n"
@@ -41,6 +41,14 @@ msgstr ""
 #: pretix_paymentdibs/templates/pretix_paymentdibs/checkout_confirm.html:5
 msgid "You will be redirected to DIBS after placing your order."
 msgstr "Du bliver viderestillet til DIBS efter at have afgivet din ordre."
+
+#: pretix_paymentdibs/templates/pretix_paymentdibs/mail_text.html:4
+msgid "Amount"
+msgstr "Beløb"
+
+#: pretix_paymentdibs/templates/pretix_paymentdibs/mail_text.html:5
+msgid "Card number"
+msgstr "Kortnummer"
 
 #: pretix_paymentdibs/templates/pretix_paymentdibs/order_paid.html:6
 msgid "DIBS payment info"

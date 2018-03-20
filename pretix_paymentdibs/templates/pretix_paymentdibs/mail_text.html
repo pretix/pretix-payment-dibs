@@ -1,0 +1,5 @@
+{% load i18n %}
+{% load dibs_extras %}
+
+<strong>{% trans "Amount" %}</strong> {{ info.currency }} {{ info.amount|dibs_amount|floatformat:2 }}<br/>
+<strong>{% trans "Card number" %}</strong> {{ info.cardnomask }}<br/>
