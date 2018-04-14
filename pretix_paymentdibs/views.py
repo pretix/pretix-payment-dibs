@@ -9,34 +9,20 @@ from django.views.decorators.csrf import csrf_exempt
 from pretix.base.models import Order
 from pretix.base.services.orders import mark_order_paid
 from pretix.multidomain.urlreverse import build_absolute_uri
+from pretix_paymentdibs.payment import DIBS
 
 logger = logging.getLogger('pretix.plugins.payment_dibs')
 
 
 @xframe_options_exempt
 def redirect_view(request, *args, **kwargs):
-    order_id = request.session['payment_dibs_order_id']
-    order = Order.objects.get(pk=order_id)
-
-    amount = int(100 * order.total)
-    currency = request.event.currency.upper()
-    merchant_id = request.session['payment_dibs_merchant_id']
-    test_mode = request.session['payment_dibs_test_mode']
-
-    callback_url = build_absolute_uri(request.event, 'plugins:pretix_paymentdibs:callback')
-    accept_url = build_absolute_uri(request.event, 'plugins:pretix_paymentdibs:return')
-
+    info = DIBS.get_payment_info(request)
     template = 'pretix_paymentdibs/redirect.html'
-    ctx = {
-        'order_id': order_id,
-        'order': order,
-        'callback_url': callback_url,
-        'accept_url': accept_url,
-        'amount': amount,
-        'currency': currency,
-        'merchant_id': merchant_id,
-        'test_mode': test_mode
-    }
+    ctx = info.copy()
+    ctx.update({
+        'callback_url': build_absolute_uri(request.event, 'plugins:pretix_paymentdibs:callback'),
+        'accept_url': build_absolute_uri(request.event, 'plugins:pretix_paymentdibs:return')
+    })
 
     return render(request, template, ctx)
 
@@ -46,7 +32,7 @@ def success(request, *args, **kwargs):
     # @see https://tech.dibspayment.com/D2/Hosted/Output_parameters/Return_pages
     parameters = request.POST if request.method == 'POST' else request.GET
     order_id = parameters.get('orderid')
-    order = Order.objects.get(code=order_id)
+    order = DIBS.get_order(order_id)
 
     urlkwargs = {
         'order': order.code,
@@ -69,11 +55,14 @@ def callback(request, **kwargs):
     parameters = request.POST if request.method == 'POST' else request.GET
 
     order_id = parameters.get('orderid')
-    order = Order.objects.get(code=order_id)
-    # @see https://tech.dibspayment.com/nodeaddpage/toolboxstatuscodes
-    status_code = parameters.get('statuscode')
+    order = DIBS.get_order(order_id)
+    status_code = int(parameters.get('statuscode'))
 
-    if int(status_code) == 2:
+    # @TODO Move this to DIBS class.
+    # @see https://tech.dibspayment.com/nodeaddpage/toolboxstatuscodes
+    # 2: authorization approved	The transaction is approved by acquirer.
+    # 5: capture completed
+    if status_code == 2 or status_code == 5:
         template = get_template('pretix_paymentdibs/mail_text.html')
         ctx = {
             'order': order,
@@ -81,6 +70,7 @@ def callback(request, **kwargs):
         }
 
         mail_text = template.render(ctx)
+        # https://tech.dibspayment.com/D2/API/Payment_functions/capturecgi
         mark_order_paid(order, 'dibs', send_mail=True, info=json.dumps(parameters), mail_text=mail_text)
 
     return HttpResponse(status=200)

@@ -1,10 +1,14 @@
+import hashlib
 import json
 import logging
+import re
 from collections import OrderedDict
 
+import pycountry
 from django import forms
 from django.template.loader import get_template
 from django.utils.translation import ugettext_lazy as _
+from pretix.base.models import Event, Organizer
 from pretix.base.payment import BasePaymentProvider
 from pretix.multidomain.urlreverse import build_absolute_uri
 
@@ -38,6 +42,65 @@ class DIBS(BasePaymentProvider):
                      min_length=2,
                      max_length=16,
                      help_text=_('The Merchant ID issued by DIBS')
+                 )),
+                ('capturenow',
+                 forms.BooleanField(
+                     label=_('capturenow'),
+                     required=False,
+                     initial=False,
+                     help_text=_('(cf. <a target="_blank" rel="noopener" href="{docs_url}">{docs_url}</a>)').format(
+                         docs_url='https://tech.dibspayment.com/D2/Hosted/Input_parameters/Standard'
+                     )
+                 )),
+                ('use_md5key',
+                 forms.BooleanField(
+                     label=_('MD5-control of payments'),
+                     required=False,
+                     initial=False,
+                     help_text=_('MD5-control of payments '
+                                 '(cf. <a target="_blank" rel="noopener" href="{docs_url}">{docs_url}</a>)').format(
+                         docs_url='https://tech.dibspayment.com/D2/API/MD5'
+                     )
+                 )),
+                ('md5_key1',
+                 forms.CharField(
+                     label=_('Key 1'),
+                     required=False,
+                     min_length=32,
+                     max_length=32,
+                     help_text=_('Key 1 (32 characters)'
+                                 '(cf. <a target="_blank" rel="noopener" href="{docs_url}">{docs_url}</a>)'
+                                 ' (required if "{parent_control}" is set)').format(
+                         docs_url='https://tech.dibspayment.com/D2/API/MD5',
+                         parent_control=_('MD5-control of payments')
+                     )
+                 )),
+                ('md5_key2',
+                 forms.CharField(
+                     label=_('Key 2'),
+                     required=False,
+                     min_length=32,
+                     max_length=32,
+                     help_text=_('Key 2 (32 characters)'
+                                 '(cf. <a target="_blank" rel="noopener" href="{docs_url}">{docs_url}</a>)'
+                                 ' (required if "{parent_control}" is set)').format(
+                         docs_url='https://tech.dibspayment.com/D2/API/MD5',
+                         parent_control=_('MD5-control of payments')
+                     )
+                 )),
+                ('decorator',
+                 forms.ChoiceField(
+                     label=_('Decorator'),
+                     choices=(
+                         ('default', _('default')),
+                         ('basal', _('basal')),
+                         ('rich', _('rich')),
+                         ('responsive', _('responsive'))
+                     ),
+                     initial='default',
+                     help_text=_('(cf. <a target="_blank" rel="noopener" href="{docs_url}">{docs_url}</a>)').format(
+                         docs_url='https://tech.dibspayment.com/D2/Hosted/Input_parameters/Standard'
+                     )
                  ))
             ]
         )
@@ -107,9 +170,76 @@ class DIBS(BasePaymentProvider):
     def order_prepare(self, request, order):
         return self._redirect_to_dibs(request, order)
 
+    @staticmethod
+    def get_currency(order):
+        return order.event.currency
+        return str(pycountry.currencies.get(alpha_3=order.event.currency).numeric)
+
+    @staticmethod
+    def get_order_id(order):
+        """
+        Construct unique DIBS order id.
+        Order codes are only unique within events.
+        """
+        return order.event.organizer.slug + '/' + order.event.slug + '/' + order.code
+
+    @staticmethod
+    def get_order(order_id):
+        """Get order from DIBS order id"""
+        # An order code only contains alphanumeric characters.
+        match = re.search('^(?P<organizer>.+)/(?P<event>.+)/(?P<code>.+)$', order_id)
+        if match is None:
+            return None
+        organizer = Organizer.objects.get(slug=match.group('organizer'))
+        event = Event.objects.get(organizer=organizer.id, slug=match.group('event'))
+
+        return Order.objects.get(code=match.group('code'), event=event.id)
+
     def _redirect_to_dibs(self, request, order):
-        request.session['payment_dibs_order_id'] = order.id
-        request.session['payment_dibs_merchant_id'] = self.settings.get('merchant_id')
-        request.session['payment_dibs_test_mode'] = self.settings.get('test_mode')
+        self.set_payment_info(request, order)
 
         return build_absolute_uri(request.event, 'plugins:pretix_paymentdibs:redirect')
+
+    def set_payment_info(self, request, order):
+        request.session['payment_dibs_payment_info'] = json.dumps({
+            'order_id': DIBS.get_order_id(order),
+            'amount': int(100 * order.total),
+            'currency': DIBS.get_currency(order),
+            'merchant_id': self.settings.get('merchant_id'),
+            'test_mode': self.settings.get('test_mode') == 'True',
+            'md5key': self._calculate_md5key(order),
+            'decorator': self.settings.get('decorator'),
+            'capturenow': self.settings.get('capturenow') == 'True',
+            'ordertext': None
+        })
+
+    @staticmethod
+    def get_payment_info(request):
+        info = json.loads(request.session['payment_dibs_payment_info'])
+
+        return info
+
+    def _calculate_md5key(self, order):
+        if not self.settings.get('use_md5key'):
+            return None
+
+        # https://tech.dibspayment.com/D2/Hosted/Md5_calculation
+        key1 = self.settings.get('md5_key1')
+        key2 = self.settings.get('md5_key2')
+        merchant = self.settings.get('merchant_id')
+        orderid = DIBS.get_order_id(order)
+        currency = DIBS.get_currency(order)
+        amount = str(int(100 * order.total))
+
+        parameters = 'merchant=' + merchant + '&orderid=' + orderid + '&currency=' + currency + '&amount=' + amount
+        inner_md5 = hashlib.md5((key1 + parameters).encode('utf-8')).hexdigest()
+        md5key = hashlib.md5((key2 + inner_md5).encode('utf-8')).hexdigest()
+
+        return md5key
+
+    def order_control_refund_render(self, order, request):
+        pass
+
+    def order_control_refund_perform(self, request, order):
+        # https://tech.dibspayment.com/D2/API/Payment_functions/refundcgi
+        pass

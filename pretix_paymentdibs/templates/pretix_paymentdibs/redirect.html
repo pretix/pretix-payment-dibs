@@ -11,17 +11,33 @@
 <h1>{% trans "Redirecting to DIBS payment" %}</h1>
 
 <form method="post" action="https://payment.architrade.com/paymentweb/start.action" accept-charset="utf-8">
+	{% comment %}
+	https://tech.dibspayment.com/D2/Hosted/Input_parameters/Standard
+	{% endcomment %}
 	<input type="hidden" name="accepturl" value="{{ accept_url }}">
 	<input type="hidden" name="amount" value="{{ amount }}">
 	<input type="hidden" name="currency" value="{{ currency }}">
 	<input type="hidden" name="merchant" value="{{ merchant_id }}">
-	<input type="hidden" name="orderid" value="{{ order.code }}">
+	<input type="hidden" name="orderid" value="{{ order_id }}">
 	{% if callback_url %}
 	<input type="hidden" name="callbackurl" value="{{ callback_url }}">
 	{% endif %}
 	{% if test_mode %}
 	<input type="hidden" name="test" value="1">
 	{% endif %}
+	{% if md5key %}
+	<input type="hidden" name="md5key" value="{{ md5key }}">
+	{% endif %}
+	{% if capturenow %}
+	<input type="hidden" name="capturenow" value="1">
+	{% endif %}
+	{% if decorator %}
+	<input type="hidden" name="decorator" value="{{ decorator }}">
+	{% endif %}
+	{% if ordertext %}
+	<input type="hidden" name="ordertext" value="{{ ordertext }}">
+	{% endif %}
+
 	<button class="btn btn-primary btn-block" type="submit">{% trans "Click here if you are not automatically redirected to DIBS" %}</button>
 </form>
 
