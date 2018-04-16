@@ -1,13 +1,9 @@
-import json
 import logging
 
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
-from django.template.loader import get_template
 from django.views.decorators.clickjacking import xframe_options_exempt
 from django.views.decorators.csrf import csrf_exempt
-from pretix.base.models import Order
-from pretix.base.services.orders import mark_order_paid
 from pretix.multidomain.urlreverse import build_absolute_uri
 from pretix_paymentdibs.payment import DIBS
 
@@ -50,27 +46,6 @@ def abort(request, **kwargs):
 
 @csrf_exempt
 def callback(request, **kwargs):
-    # @see https://tech.dibspayment.com/D2/Hosted/Output_parameters/Return_pages
-    # @see https://tech.dibspayment.com/D2/Hosted/Output_parameters/Return_parameters
-    parameters = request.POST if request.method == 'POST' else request.GET
-
-    order_id = parameters.get('orderid')
-    order = DIBS.get_order(order_id)
-    status_code = int(parameters.get('statuscode'))
-
-    # @TODO Move this to DIBS class.
-    # @see https://tech.dibspayment.com/nodeaddpage/toolboxstatuscodes
-    # 2: authorization approved	The transaction is approved by acquirer.
-    # 5: capture completed
-    if status_code == 2 or status_code == 5:
-        template = get_template('pretix_paymentdibs/mail_text.html')
-        ctx = {
-            'order': order,
-            'info': parameters
-        }
-
-        mail_text = template.render(ctx)
-        # https://tech.dibspayment.com/D2/API/Payment_functions/capturecgi
-        mark_order_paid(order, 'dibs', send_mail=True, info=json.dumps(parameters), mail_text=mail_text)
+    DIBS.validate_callback(request)
 
     return HttpResponse(status=200)

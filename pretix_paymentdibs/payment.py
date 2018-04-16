@@ -8,8 +8,9 @@ import pycountry
 from django import forms
 from django.template.loader import get_template
 from django.utils.translation import ugettext_lazy as _
-from pretix.base.models import Event, Organizer
+from pretix.base.models import Event, Order, Organizer
 from pretix.base.payment import BasePaymentProvider
+from pretix.base.services.orders import mark_order_paid
 from pretix.multidomain.urlreverse import build_absolute_uri
 
 logger = logging.getLogger('pretix.plugins.payment_dibs')
@@ -172,8 +173,11 @@ class DIBS(BasePaymentProvider):
 
     @staticmethod
     def get_currency(order):
-        return order.event.currency
         return str(pycountry.currencies.get(alpha_3=order.event.currency).numeric)
+
+    @staticmethod
+    def get_amount(order):
+        return str(int(100 * order.total))
 
     @staticmethod
     def get_order_id(order):
@@ -219,6 +223,58 @@ class DIBS(BasePaymentProvider):
 
         return info
 
+    @staticmethod
+    def validate_callback(request):
+        # @see https://tech.dibspayment.com/D2/Hosted/Output_parameters/Return_pages
+        # @see https://tech.dibspayment.com/D2/Hosted/Output_parameters/Return_parameters
+        parameters = request.POST if request.method == 'POST' else request.GET
+
+        order_id = parameters.get('orderid')
+        order = DIBS.get_order(order_id)
+
+        if order.payment_provider != DIBS.identifier:
+            return False
+
+        status_code = int(parameters.get('statuscode'))
+
+        # @see https://tech.dibspayment.com/nodeaddpage/toolboxstatuscodes
+        # 2: authorization approved	The transaction is approved by acquirer.
+        # 5: capture completed
+        if status_code == 2 or status_code == 5:
+            payment_provider = order.event.get_payment_providers()[order.payment_provider]
+            if payment_provider.validate_transaction(order, parameters):
+                template = get_template('pretix_paymentdibs/mail_text.html')
+                ctx = {
+                    'order': order,
+                    'info': parameters
+                }
+
+                mail_text = template.render(ctx)
+                # https://tech.dibspayment.com/D2/API/Payment_functions/capturecgi
+                mark_order_paid(order, DIBS.identifier, send_mail=True, info=json.dumps(parameters), mail_text=mail_text)
+
+                return True
+
+        return False
+
+    def validate_transaction(self, order, parameters):
+        if not self.settings.get('use_md5key'):
+            return True
+
+        # https://tech.dibspayment.com/D2/API/MD5
+        key1 = self.settings.get('md5_key1')
+        key2 = self.settings.get('md5_key2')
+
+        transact = parameters['transact']
+        currency = DIBS.get_currency(order)
+        amount = DIBS.get_amount(order)
+
+        authkey = DIBS.md5(key2 + DIBS.md5(key1 + 'transact=' + transact + '&amount=' + amount + '&currency=' + currency))
+
+        logger.debug(['validate_transaction', key1, key2, transact, currency, amount, authkey, parameters['authkey'] == authkey, parameters])
+
+        return parameters['authkey'] == authkey
+
     def _calculate_md5key(self, order):
         if not self.settings.get('use_md5key'):
             return None
@@ -229,13 +285,18 @@ class DIBS(BasePaymentProvider):
         merchant = self.settings.get('merchant_id')
         orderid = DIBS.get_order_id(order)
         currency = DIBS.get_currency(order)
-        amount = str(int(100 * order.total))
+        amount = DIBS.get_amount(order)
 
         parameters = 'merchant=' + merchant + '&orderid=' + orderid + '&currency=' + currency + '&amount=' + amount
-        inner_md5 = hashlib.md5((key1 + parameters).encode('utf-8')).hexdigest()
-        md5key = hashlib.md5((key2 + inner_md5).encode('utf-8')).hexdigest()
+        inner_md5 = DIBS.md5(key1 + parameters)
+        md5key = DIBS.md5(key2 + inner_md5)
 
         return md5key
+
+    @staticmethod
+    def md5(s):
+        """Calculate md5 hash of a string"""
+        return hashlib.md5(s.encode('utf-8')).hexdigest()
 
     def order_control_refund_render(self, order, request):
         pass
