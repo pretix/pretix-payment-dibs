@@ -157,11 +157,14 @@ class DIBS(BasePaymentProvider):
     def order_paid_render(self, request, order) -> str:
         template = get_template('pretix_paymentdibs/order_paid.html')
         info = None if order.payment_info is None else json.loads(order.payment_info)
+        info['currency_code'] = info['currency']
+        info['currency'] = pycountry.currencies.get(numeric=info['currency']).alpha_3
         ctx = {
             'request': request,
             'order': order,
             'event': self.event,
-            'info': info
+            'info': info,
+            'status': 'captured' if self.settings.get('capturenow') else 'reserved'
         }
         return template.render(ctx)
 
@@ -172,7 +175,7 @@ class DIBS(BasePaymentProvider):
         return self._redirect_to_dibs(request, order)
 
     @staticmethod
-    def get_currency(order):
+    def get_currency_code(order):
         return str(pycountry.currencies.get(alpha_3=order.event.currency).numeric)
 
     @staticmethod
@@ -208,7 +211,7 @@ class DIBS(BasePaymentProvider):
         request.session['payment_dibs_payment_info'] = json.dumps({
             'order_id': DIBS.get_order_id(order),
             'amount': int(100 * order.total),
-            'currency': DIBS.get_currency(order),
+            'currency': DIBS.get_currency_code(order),
             'merchant_id': self.settings.get('merchant_id'),
             'test_mode': self.settings.get('test_mode') == 'True',
             'md5key': self._calculate_md5key(order),
@@ -266,7 +269,7 @@ class DIBS(BasePaymentProvider):
         key2 = self.settings.get('md5_key2')
 
         transact = parameters['transact']
-        currency = DIBS.get_currency(order)
+        currency = DIBS.get_currency_code(order)
         amount = DIBS.get_amount(order)
 
         authkey = DIBS.md5(key2 + DIBS.md5(key1 + 'transact=' + transact + '&amount=' + amount + '&currency=' + currency))
@@ -284,7 +287,7 @@ class DIBS(BasePaymentProvider):
         key2 = self.settings.get('md5_key2')
         merchant = self.settings.get('merchant_id')
         orderid = DIBS.get_order_id(order)
-        currency = DIBS.get_currency(order)
+        currency = DIBS.get_currency_code(order)
         amount = DIBS.get_amount(order)
 
         parameters = 'merchant=' + merchant + '&orderid=' + orderid + '&currency=' + currency + '&amount=' + amount
