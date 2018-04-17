@@ -1,5 +1,10 @@
 {% load i18n %}
 {% load dibs_extras %}
 
-<strong>{% trans "Amount" %}</strong> {{ info.currency }} {{ info.amount|dibs_amount|floatformat:2 }}<br/>
-<strong>{% trans "Card number" %}</strong> {{ info.cardnomask }}<br/>
+<strong>
+  {% if status == 'captured' %}
+  {% blocktrans with currency=info.currency amount=info.amount|dibs_amount|floatformat:2 cardno=info.cardnomask %}{{ amount }} {{ currency }} has been captured on your payment card ({{ cardno }}).{% endblocktrans %}
+  {% else %}
+  {% blocktrans with currency=info.currency amount=info.amount|dibs_amount|floatformat:2 cardno=info.cardnomask %}{{ amount }} {{ currency }} has been reserved on your payment card ({{ cardno }}).{% endblocktrans %}
+  {% endif %}
+</strong>

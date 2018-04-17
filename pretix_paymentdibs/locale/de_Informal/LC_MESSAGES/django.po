@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2018-03-06 15:27+0100\n"
-"PO-Revision-Date: \n"
+"PO-Revision-Date: 2018-04-17 14:01+0200\n"
 "Last-Translator: Mikkel Ricky\n"
 "Language-Team: \n"
 "Language: de\n"
@@ -12,7 +12,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 
 #: pretix_paymentdibs/__init__.py:10 pretix_paymentdibs/__init__.py:12
-msgid "Credit card payment using DIBS"
+msgid "Card payment using DIBS"
 msgstr ""
 
 #: pretix_paymentdibs/payment.py:16

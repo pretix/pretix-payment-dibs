@@ -2,72 +2,162 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-03-20 15:42+0100\n"
-"PO-Revision-Date: 2018-03-20 15:43+0100\n"
+"POT-Creation-Date: 2018-04-17 14:31+0200\n"
+"PO-Revision-Date: 2018-04-17 14:31+0200\n"
 "Last-Translator: Mikkel Ricky\n"
 "Language-Team: \n"
 "Language: da\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 2.0.6\n"
 
 #: pretix_paymentdibs/__init__.py:10 pretix_paymentdibs/__init__.py:12
-msgid "Credit card payment using DIBS"
+msgid "Card payment using DIBS"
 msgstr ""
 
-#: pretix_paymentdibs/payment.py:16
+#: pretix_paymentdibs/payment.py:21
 msgid "DIBS"
 msgstr "DIBS"
 
-#: pretix_paymentdibs/payment.py:27
-msgid "Test mode"
-msgstr ""
-
-#: pretix_paymentdibs/payment.py:30
-#, python-brace-format
-msgid ""
-"If \"Test mode\" is checked, payments will run in test mode (cf. <a target="
-"\"_blank\" rel=\"noopener\" href=\"{docs_url}\">{docs_url}</a>)"
-msgstr ""
-
-#: pretix_paymentdibs/payment.py:37
+#: pretix_paymentdibs/payment.py:54
 msgid "Merchant ID"
 msgstr ""
 
-#: pretix_paymentdibs/payment.py:40
+#: pretix_paymentdibs/payment.py:57
 msgid "The Merchant ID issued by DIBS"
 msgstr ""
 
-#: pretix_paymentdibs/templates/pretix_paymentdibs/checkout_confirm.html:5
+#: pretix_paymentdibs/payment.py:61
+msgid "Test mode"
+msgstr "Testtilstand"
+
+#: pretix_paymentdibs/payment.py:64
+#, python-brace-format
+msgid ""
+"If checked, payments will be processed in test mode (cf. <a target=\"_blank"
+"\" rel=\"noopener\" href=\"{docs_url}\">{docs_url}</a>)"
+msgstr ""
+"Hvis sat, vil DIBS køre i testtilstand (jf. <a target=“_blank” "
+"rel=“noopener” href=“{docs_url}”>{docs_url}</a>)"
+
+#: pretix_paymentdibs/payment.py:71
+msgid "Capture now"
+msgstr ""
+
+#: pretix_paymentdibs/payment.py:74
+#, python-brace-format
+msgid ""
+"If set, payments will be captured immediately (cf. <a target=\"_blank\" rel="
+"\"noopener\" href=\"{docs_url}\">{docs_url}</a>)"
+msgstr ""
+
+#: pretix_paymentdibs/payment.py:81 pretix_paymentdibs/payment.py:99
+#: pretix_paymentdibs/payment.py:112
+msgid "MD5-control of payments"
+msgstr "Kontrol af betalinger med md5-koder"
+
+#: pretix_paymentdibs/payment.py:84
+#, python-brace-format
+msgid ""
+"MD5-control of payments (cf. <a target=\"_blank\" rel=\"noopener\" href="
+"\"{docs_url}\">{docs_url}</a>)"
+msgstr ""
+
+#: pretix_paymentdibs/payment.py:91
+msgid "MD5 key 1"
+msgstr "Md5-nøgle 1"
+
+#: pretix_paymentdibs/payment.py:95
+#, python-brace-format
+msgid ""
+"MD5 key 1 (32 characters) (cf. <a target=\"_blank\" rel=\"noopener\" href="
+"\"{docs_url}\">{docs_url}</a>) (required if \"{parent_control}\" is set)"
+msgstr ""
+"Md5-nøgle 1 (32 tegn) (jf. <a target=“_blank” rel=“noopener” "
+"href=“{docs_url}”>{docs_url}</a>) (påkrævet hvis “{parent_control}” er sat)"
+
+#: pretix_paymentdibs/payment.py:104
+msgid "MD5 key 2"
+msgstr "Md5-nøgle 1"
+
+#: pretix_paymentdibs/payment.py:108
+#, python-brace-format
+msgid ""
+"MD5 key 2 (32 characters) (cf. <a target=\"_blank\" rel=\"noopener\" href="
+"\"{docs_url}\">{docs_url}</a>) (required if \"{parent_control}\" is set)"
+msgstr ""
+"Md5-nøgle 2 (32 tegn) (jf. <a target=“_blank” rel=“noopener” "
+"href=“{docs_url}”>{docs_url}</a>) (påkrævet hvis “{parent_control}” er sat)"
+
+#: pretix_paymentdibs/payment.py:117
+msgid "Decorator"
+msgstr "Visning"
+
+#: pretix_paymentdibs/payment.py:119
+msgid "Default"
+msgstr "Standard"
+
+#: pretix_paymentdibs/payment.py:120
+msgid "Basal"
+msgstr "Basis"
+
+#: pretix_paymentdibs/payment.py:121
+msgid "Rich"
+msgstr "Rigt"
+
+#: pretix_paymentdibs/payment.py:122
+msgid "Responsive"
+msgstr "Responsivt"
+
+#: pretix_paymentdibs/payment.py:125
+#, python-brace-format
+msgid ""
+"(cf. <a target=\"_blank\" rel=\"noopener\" href=\"{docs_url}\">{docs_url}</"
+"a>)"
+msgstr ""
+"(jf. <a target=“_blank” rel=“noopener” href=“{docs_url}”>{docs_url}</a>)"
+
+#: pretix_paymentdibs/templates/pretix_paymentdibs/checkout_confirm.html:3
 msgid "You will be redirected to DIBS after placing your order."
 msgstr "Du bliver viderestillet til DIBS efter at have afgivet din ordre."
 
-#: pretix_paymentdibs/templates/pretix_paymentdibs/mail_text.html:4
-msgid "Amount"
-msgstr "Beløb"
-
-#: pretix_paymentdibs/templates/pretix_paymentdibs/mail_text.html:5
-msgid "Card number"
-msgstr "Kortnummer"
-
-#: pretix_paymentdibs/templates/pretix_paymentdibs/order_paid.html:6
-msgid "DIBS payment info"
-msgstr "Betalingsoplysninger fra DIBS"
-
+#: pretix_paymentdibs/templates/pretix_paymentdibs/mail_text.html:6
 #: pretix_paymentdibs/templates/pretix_paymentdibs/order_paid.html:9
 #, python-format
 msgid ""
-"%(amount)s (%(currency)s) has been reserved on your payment card "
-"(%(cardno)s)."
+"%(amount)s %(currency)s has been captured on your payment card (%(cardno)s)."
 msgstr ""
-"Et beløb stort %(currency)s %(amount)s er blevet reserveret på dit "
-"betalingskort (%(cardno)s)."
+"%(amount)s %(currency)s er blevet hævet på dit betalingskort (%(cardno)s)."
+
+#: pretix_paymentdibs/templates/pretix_paymentdibs/mail_text.html:8
+#: pretix_paymentdibs/templates/pretix_paymentdibs/order_paid.html:11
+#, python-format
+msgid ""
+"%(amount)s %(currency)s has been reserved on your payment card (%(cardno)s)."
+msgstr ""
+"%(amount)s %(currency)s er blevet reserveret på dit betalingskort "
+"(%(cardno)s)."
+
+#: pretix_paymentdibs/templates/pretix_paymentdibs/order_paid.html:5
+msgid "DIBS payment info"
+msgstr "Betalingsoplysninger fra DIBS"
+
+#: pretix_paymentdibs/templates/pretix_paymentdibs/payment_form.html:3
+msgid "Pay with card or MobilePay."
+msgstr "Betal med kort eller MobilePay."
 
 #: pretix_paymentdibs/templates/pretix_paymentdibs/redirect.html:8
 #: pretix_paymentdibs/templates/pretix_paymentdibs/redirect.html:11
 msgid "Redirecting to DIBS payment"
 msgstr "Viderestiller til DIBS' betalingsvindue"
 
-#: pretix_paymentdibs/templates/pretix_paymentdibs/redirect.html:25
+#: pretix_paymentdibs/templates/pretix_paymentdibs/redirect.html:42
 msgid "Click here if you are not automatically redirected to DIBS"
 msgstr "Tryk her hvis du ikke automatisk bliver viderestillet"
+
+#~ msgid "Amount"
+#~ msgstr "Beløb"
+
+#~ msgid "Card number"
+#~ msgstr "Kortnummer"

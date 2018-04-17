@@ -1,5 +1,5 @@
-Credit card payment using DIBS
-==========================
+Card payment using DIBS
+=======================
 
 This is a plugin for `pretix`_. 
 

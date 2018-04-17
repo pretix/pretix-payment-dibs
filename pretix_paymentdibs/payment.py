@@ -23,88 +23,113 @@ class DIBS(BasePaymentProvider):
     ])
     # https://tech.dibspayment.com/D2/Hosted/Input_parameters/Standard
 
+    # https://tech.dibspayment.com/nodeaddpage/toolboxstatuscodes
+    STATUS_CODE_TRANSACTION_INSERTED = 0
+    STATUS_CODE_DECLINED = 1
+    STATUS_CODE_AUTHORIZATION_APPROVED = 2
+    STATUS_CODE_CAPTURE_SENT_TO_ACQUIRER = 3
+    STATUS_CODE_CAPTURE_DECLINED_BY_ACQUIRER = 4
+    STATUS_CODE_CAPTURE_COMPLETED = 5
+    STATUS_CODE_AUTHORIZATION_DELETED = 6
+    STATUS_CODE_CAPTURE_BALANCED = 7
+    STATUS_CODE_PARTIALLY_REFUNDED_AND_BALANCED = 8
+    STATUS_CODE_REFUND_SENT_TO_ACQUIRER = 9
+    STATUS_CODE_REFUND_DECLINED = 10
+    STATUS_CODE_REFUND_COMPLETED = 11
+    STATUS_CODE_CAPTURE_PENDING = 12
+    STATUS_CODE_TICKET_TRANSACTION = 13
+    STATUS_CODE_DELETED_TICKET_TRANSACTION = 14
+    STATUS_CODE_REFUND_PENDING = 15
+    STATUS_CODE_WAITING_FOR_SHOP_APPROVAL = 16
+    STATUS_CODE_DECLINED_BY_DIBS = 17
+    STATUS_CODE_MULTICAP_TRANSACTION_OPEN = 18
+    STATUS_CODE_MULTICAP_TRANSACTION_CLOSED = 19
+    STATUS_CODE_POSTPONED = 26
+
     @property
     def settings_form_fields(self):
-        return OrderedDict(
-            list(super().settings_form_fields.items()) + [
-                ('test_mode',
-                 forms.BooleanField(
-                     label=_('Test mode'),
-                     required=False,
-                     initial=False,
-                     help_text=_('If "Test mode" is checked, payments will run in test mode '
-                                 '(cf. <a target="_blank" rel="noopener" href="{docs_url}">{docs_url}</a>)').format(
-                         docs_url='https://tech.dibspayment.com/D2/Hosted/Input_parameters/Standard'
-                     )
-                 )),
-                ('merchant_id',
-                 forms.CharField(
-                     label=_('Merchant ID'),
-                     min_length=2,
-                     max_length=16,
-                     help_text=_('The Merchant ID issued by DIBS')
-                 )),
-                ('capturenow',
-                 forms.BooleanField(
-                     label=_('capturenow'),
-                     required=False,
-                     initial=False,
-                     help_text=_('(cf. <a target="_blank" rel="noopener" href="{docs_url}">{docs_url}</a>)').format(
-                         docs_url='https://tech.dibspayment.com/D2/Hosted/Input_parameters/Standard'
-                     )
-                 )),
-                ('use_md5key',
-                 forms.BooleanField(
-                     label=_('MD5-control of payments'),
-                     required=False,
-                     initial=False,
-                     help_text=_('MD5-control of payments '
-                                 '(cf. <a target="_blank" rel="noopener" href="{docs_url}">{docs_url}</a>)').format(
-                         docs_url='https://tech.dibspayment.com/D2/API/MD5'
-                     )
-                 )),
-                ('md5_key1',
-                 forms.CharField(
-                     label=_('Key 1'),
-                     required=False,
-                     min_length=32,
-                     max_length=32,
-                     help_text=_('Key 1 (32 characters)'
-                                 '(cf. <a target="_blank" rel="noopener" href="{docs_url}">{docs_url}</a>)'
-                                 ' (required if "{parent_control}" is set)').format(
-                         docs_url='https://tech.dibspayment.com/D2/API/MD5',
-                         parent_control=_('MD5-control of payments')
-                     )
-                 )),
-                ('md5_key2',
-                 forms.CharField(
-                     label=_('Key 2'),
-                     required=False,
-                     min_length=32,
-                     max_length=32,
-                     help_text=_('Key 2 (32 characters)'
-                                 '(cf. <a target="_blank" rel="noopener" href="{docs_url}">{docs_url}</a>)'
-                                 ' (required if "{parent_control}" is set)').format(
-                         docs_url='https://tech.dibspayment.com/D2/API/MD5',
-                         parent_control=_('MD5-control of payments')
-                     )
-                 )),
-                ('decorator',
-                 forms.ChoiceField(
-                     label=_('Decorator'),
-                     choices=(
-                         ('default', _('default')),
-                         ('basal', _('basal')),
-                         ('rich', _('rich')),
-                         ('responsive', _('responsive'))
-                     ),
-                     initial='default',
-                     help_text=_('(cf. <a target="_blank" rel="noopener" href="{docs_url}">{docs_url}</a>)').format(
-                         docs_url='https://tech.dibspayment.com/D2/Hosted/Input_parameters/Standard'
-                     )
-                 ))
-            ]
-        )
+        d = OrderedDict([
+            ('merchant_id',
+             forms.CharField(
+                 label=_('Merchant ID'),
+                 min_length=2,
+                 max_length=16,
+                 help_text=_('The Merchant ID issued by DIBS')
+             )),
+            ('test_mode',
+             forms.BooleanField(
+                 label=_('Test mode'),
+                 required=False,
+                 initial=False,
+                 help_text=_('If checked, payments will be processed in test mode '
+                             '(cf. <a target="_blank" rel="noopener" href="{docs_url}">{docs_url}</a>)').format(
+                     docs_url='https://tech.dibspayment.com/D2/Hosted/Input_parameters/Standard'
+                 )
+             )),
+            ('capturenow',
+             forms.BooleanField(
+                 label=_('Capture now'),
+                 required=False,
+                 initial=False,
+                 help_text=_('If set, payments will be captured immediately'
+                             ' (cf. <a target="_blank" rel="noopener" href="{docs_url}">{docs_url}</a>)').format(
+                     docs_url='https://tech.dibspayment.com/D2/Hosted/Input_parameters/Standard'
+                 )
+             )),
+            ('use_md5key',
+             forms.BooleanField(
+                 label=_('MD5-control of payments'),
+                 required=False,
+                 initial=False,
+                 help_text=_('MD5-control of payments'
+                             ' (cf. <a target="_blank" rel="noopener" href="{docs_url}">{docs_url}</a>)').format(
+                     docs_url='https://tech.dibspayment.com/D2/API/MD5'
+                 )
+             )),
+            ('md5_key1',
+             forms.CharField(
+                 label=_('MD5 key 1'),
+                 required=False,
+                 min_length=32,
+                 max_length=32,
+                 help_text=_('MD5 key 1 (32 characters)'
+                             ' (cf. <a target="_blank" rel="noopener" href="{docs_url}">{docs_url}</a>)'
+                             ' (required if "{parent_control}" is set)').format(
+                     docs_url='https://tech.dibspayment.com/D2/API/MD5',
+                     parent_control=_('MD5-control of payments')
+                 )
+             )),
+            ('md5_key2',
+             forms.CharField(
+                 label=_('MD5 key 2'),
+                 required=False,
+                 min_length=32,
+                 max_length=32,
+                 help_text=_('MD5 key 2 (32 characters)'
+                             ' (cf. <a target="_blank" rel="noopener" href="{docs_url}">{docs_url}</a>)'
+                             ' (required if "{parent_control}" is set)').format(
+                     docs_url='https://tech.dibspayment.com/D2/API/MD5',
+                     parent_control=_('MD5-control of payments')
+                 )
+             )),
+            ('decorator',
+             forms.ChoiceField(
+                 label=_('Decorator'),
+                 choices=(
+                     ('default', _('Default')),
+                     ('basal', _('Basal')),
+                     ('rich', _('Rich')),
+                     ('responsive', _('Responsive'))
+                 ),
+                 initial='default',
+                 help_text=_('(cf. <a target="_blank" rel="noopener" href="{docs_url}">{docs_url}</a>)').format(
+                     docs_url='https://tech.dibspayment.com/D2/Hosted/Input_parameters/Standard'
+                 )
+             ))
+        ] + list(super().settings_form_fields.items()))
+        d.move_to_end('_enabled', last=False)
+
+        return d
 
     def settings_content_render(self, request):
         pass
@@ -156,15 +181,13 @@ class DIBS(BasePaymentProvider):
 
     def order_paid_render(self, request, order) -> str:
         template = get_template('pretix_paymentdibs/order_paid.html')
-        info = None if order.payment_info is None else json.loads(order.payment_info)
-        info['currency_code'] = info['currency']
-        info['currency'] = pycountry.currencies.get(numeric=info['currency']).alpha_3
+        info = json.loads(order.payment_info)
         ctx = {
             'request': request,
             'order': order,
             'event': self.event,
             'info': info,
-            'status': 'captured' if self.settings.get('capturenow') else 'reserved'
+            'status': 'captured' if int(info['statuscode']) == DIBS.STATUS_CODE_CAPTURE_COMPLETED else 'reserved'
         }
         return template.render(ctx)
 
@@ -238,23 +261,25 @@ class DIBS(BasePaymentProvider):
         if order.payment_provider != DIBS.identifier:
             return False
 
-        status_code = int(parameters.get('statuscode'))
+        info = json.loads(json.dumps(parameters))
+        info['currency_code'] = info['currency']
+        info['currency'] = pycountry.currencies.get(numeric=info['currency']).alpha_3
+        info['statuscode'] = int(info['statuscode'])
+        status_code = info['statuscode']
 
-        # @see https://tech.dibspayment.com/nodeaddpage/toolboxstatuscodes
-        # 2: authorization approved	The transaction is approved by acquirer.
-        # 5: capture completed
-        if status_code == 2 or status_code == 5:
+        if status_code in {DIBS.STATUS_CODE_AUTHORIZATION_APPROVED, DIBS.STATUS_CODE_CAPTURE_COMPLETED}:
             payment_provider = order.event.get_payment_providers()[order.payment_provider]
             if payment_provider.validate_transaction(order, parameters):
                 template = get_template('pretix_paymentdibs/mail_text.html')
                 ctx = {
                     'order': order,
-                    'info': parameters
+                    'info': info,
+                    'status': 'captured' if status_code == DIBS.STATUS_CODE_CAPTURE_COMPLETED else 'reserved'
                 }
 
                 mail_text = template.render(ctx)
                 # https://tech.dibspayment.com/D2/API/Payment_functions/capturecgi
-                mark_order_paid(order, DIBS.identifier, send_mail=True, info=json.dumps(parameters), mail_text=mail_text)
+                mark_order_paid(order, DIBS.identifier, send_mail=True, info=json.dumps(info), mail_text=mail_text)
 
                 return True
 
@@ -273,8 +298,6 @@ class DIBS(BasePaymentProvider):
         amount = DIBS.get_amount(order)
 
         authkey = DIBS.md5(key2 + DIBS.md5(key1 + 'transact=' + transact + '&amount=' + amount + '&currency=' + currency))
-
-        logger.debug(['validate_transaction', key1, key2, transact, currency, amount, authkey, parameters['authkey'] == authkey, parameters])
 
         return parameters['authkey'] == authkey
 

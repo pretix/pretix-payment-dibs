@@ -26,7 +26,7 @@ cmdclass = {
 setup(
     name='pretix-payment-dibs',
     version='1.0.0',
-    description='Credit card payment using DIBS',
+    description='Card payment using DIBS',
     long_description=long_description,
     url='GitHub repository URL',
     author='Mikkel Ricky',

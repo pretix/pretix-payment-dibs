@@ -7,9 +7,9 @@ class PluginApp(AppConfig):
     verbose_name = 'DIBS'
 
     class PretixPluginMeta:
-        name = ugettext_lazy('Credit card payment using DIBS')
+        name = ugettext_lazy('Card payment using DIBS')
         author = 'Mikkel Ricky'
-        description = ugettext_lazy('Credit card payment using DIBS')
+        description = ugettext_lazy('Card payment using DIBS')
         visible = True
         version = '1.0.0'
 
