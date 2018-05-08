@@ -3,9 +3,12 @@ import json
 import logging
 import re
 from collections import OrderedDict
+from urllib.parse import parse_qs
 
 import pycountry
+import requests
 from django import forms
+from django.contrib import messages
 from django.template.loader import get_template
 from django.utils.translation import ugettext_lazy as _
 from pretix.base.models import Event, Order, Organizer
@@ -45,6 +48,23 @@ class DIBS(BasePaymentProvider):
     STATUS_CODE_MULTICAP_TRANSACTION_OPEN = 18
     STATUS_CODE_MULTICAP_TRANSACTION_CLOSED = 19
     STATUS_CODE_POSTPONED = 26
+
+    # https://tech.dibspayment.com/D2/API/Error_codes
+    REFUND_ACCEPTED = 0
+    REFUND_NO_RESPONSE_FROM_ACQUIRER = 1
+    REFUND_TIMEOUT = 2
+    REFUND_CREDIT_CARD_EXPIRED = 3
+    REFUND_REJECTED_BY_ACQUIRER = 4
+    REFUND_AUTHORISATION_OLDER_THAN_7_DAYS = 5
+    REFUND_TRANSACTION_STATUS_ON_THE_DIBS_SERVER_DOES_NOT_ALLOW_FUNCTION = 6
+    REFUND_AMOUNT_TOO_HIGH = 7
+    REFUND_ERROR_IN_THE_PARAMETERS_SENT_TO_THE_DIBS_SERVER = 8
+    REFUND_ORDER_NUMBER_ORDERID_DOES_NOT_CORRESPOND_TO_THE_AUTHORISATION_ORDER_NUMBER = 9
+    REFUND_RE_AUTHORISATION_OF_THE_TRANSACTION_WAS_REJECTED = 10
+    REFUND_NOT_ABLE_TO_COMMUNICATE_WITH_THE_ACQUIER = 11
+    REFUND_CONFIRM_REQUEST_ERROR = 12
+    REFUND_CAPTURE_IS_CALLED_FOR_A_TRANSACTION_WHICH_IS_PENDING_FOR_BATCH_I_E_CAPTURE_WAS_ALREADY_CALLED = 14
+    REFUND_CAPTURE_OR_REFUND_WAS_BLOCKED_BY_DIBS = 15
 
     @property
     def settings_form_fields(self):
@@ -197,6 +217,90 @@ class DIBS(BasePaymentProvider):
     def order_prepare(self, request, order):
         return self._redirect_to_dibs(request, order)
 
+    def order_control_refund_render(self, order, request):
+        merchant = self.settings.get('merchant_id')
+        (username, password) = self.get_api_authorization(merchant)
+        if username is None or password is None:
+            messages.error(request, _('Missing DIBS api username and password for merchant {merchant}.'
+                                      ' Order cannot be refunded in DIBS.').format(merchant=merchant))
+
+        template = get_template('pretix_paymentdibs/control_refund.html')
+        ctx = {
+            'request': request,
+            'event': self.event,
+            'order': order
+        }
+        return template.render(ctx)
+
+    def order_control_refund_perform(self, request, order):
+        info = json.loads(order.payment_info)
+        merchant = self.settings.get('merchant_id')
+        transact = info['transact']
+        amount = info['amount']
+        currency = pycountry.currencies.get(alpha_3=info['currency']).numeric
+        orderid = info['orderid']
+
+        payload = {
+            'merchant': merchant,
+            'transact': transact,
+            'amount': amount,
+            'currency': currency,
+            'orderid': orderid,
+            'textreply': 'true',
+            # 'fullreply': 'true'
+        }
+
+        if self.settings.get('test_mode'):
+            payload['test'] = 1
+
+        if self.settings.get('use_md5key'):
+            # https://tech.dibspayment.com/D2/API/MD5
+            key1 = self.settings.get('md5_key1')
+            key2 = self.settings.get('md5_key2')
+
+            parameters = 'merchant=' + merchant + '&orderid=' + orderid + '&transact=' + transact + '&amount=' + amount
+            md5key = DIBS.md5(key2 + DIBS.md5(key1 + parameters))
+            payload['md5key'] = md5key
+
+        (username, password) = self.get_api_authorization(merchant)
+        if username is None or password is None:
+            messages.error(request, _('Missing DIBS api username and password for merchant {merchant}.'
+                                      ' Order cannot be refunded in DIBS.').format(merchant=merchant))
+            return None
+
+        # https://tech.dibspayment.com/D2/API/Payment_functions/refundcgi
+        url = 'https://{}:{}@payment.architrade.com/cgi-adm/refund.cgi'.format(username, password)
+
+        r = requests.post(url, data=payload)
+
+        data = parse_qs(r.text)
+        status = data['status'][0] if 'status' in data else None
+        result = int(data['result'][0]) if 'result' in data else -1
+        message = data['message'][0] if 'message' in data else None
+
+        if result == DIBS.REFUND_ACCEPTED:
+            from pretix.base.services.orders import mark_order_refunded
+
+            mark_order_refunded(order, user=request.user)
+            messages.success(request, _('The order has been marked as refunded and the money have been refunded in DIBS.'))
+        else:
+            messages.error(request, _('Error refunding in DIBS ({status}; {result}; {message})'.format(status=status, result=result, message=message)))
+            logger.error(['order_control_refund_perform', r.text, r.status_code, info])
+
+        return None
+
+    def get_api_authorization(self, merchant):
+        from pretix.settings import config
+
+        section = 'pretix_paymentdibs'
+        option = 'api_auth[{}]'.format(merchant)
+        data = config.get(section, option) if config.has_option(section, option) else None
+
+        try:
+            return data.split(':')
+        except Exception as e:
+            return (None, None)
+
     @staticmethod
     def get_currency_code(order):
         return str(pycountry.currencies.get(alpha_3=order.event.currency).numeric)
@@ -323,10 +427,3 @@ class DIBS(BasePaymentProvider):
     def md5(s):
         """Calculate md5 hash of a string"""
         return hashlib.md5(s.encode('utf-8')).hexdigest()
-
-    def order_control_refund_render(self, order, request):
-        pass
-
-    def order_control_refund_perform(self, request, order):
-        # https://tech.dibspayment.com/D2/API/Payment_functions/refundcgi
-        pass
