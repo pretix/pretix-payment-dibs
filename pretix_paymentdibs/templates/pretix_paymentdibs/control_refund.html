@@ -1,0 +1,8 @@
+{% load i18n %}
+{% load dibs_extras %}
+
+<div class="dibs-payment-info">
+  <p>
+    {% blocktrans with currency=info.currency amount=info.amount|dibs_amount|floatformat:2 %}If you confirm the refund, {{ amount }} {{ currency }} will be transfered back to the customer.{% endblocktrans %}
+  </p>
+</div>

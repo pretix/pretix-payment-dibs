@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-04-17 14:31+0200\n"
-"PO-Revision-Date: 2018-04-17 14:31+0200\n"
+"POT-Creation-Date: 2018-05-09 12:50+0200\n"
+"PO-Revision-Date: 2018-05-09 12:52+0200\n"
 "Last-Translator: Mikkel Ricky\n"
 "Language-Team: \n"
 "Language: da\n"
@@ -16,23 +16,23 @@ msgstr ""
 msgid "Card payment using DIBS"
 msgstr ""
 
-#: pretix_paymentdibs/payment.py:21
+#: pretix_paymentdibs/payment.py:24
 msgid "DIBS"
 msgstr "DIBS"
 
-#: pretix_paymentdibs/payment.py:54
+#: pretix_paymentdibs/payment.py:74
 msgid "Merchant ID"
 msgstr ""
 
-#: pretix_paymentdibs/payment.py:57
+#: pretix_paymentdibs/payment.py:77
 msgid "The Merchant ID issued by DIBS"
 msgstr ""
 
-#: pretix_paymentdibs/payment.py:61
+#: pretix_paymentdibs/payment.py:81
 msgid "Test mode"
 msgstr "Testtilstand"
 
-#: pretix_paymentdibs/payment.py:64
+#: pretix_paymentdibs/payment.py:84
 #, python-brace-format
 msgid ""
 "If checked, payments will be processed in test mode (cf. <a target=\"_blank"
@@ -41,34 +41,34 @@ msgstr ""
 "Hvis sat, vil DIBS køre i testtilstand (jf. <a target=“_blank” "
 "rel=“noopener” href=“{docs_url}”>{docs_url}</a>)"
 
-#: pretix_paymentdibs/payment.py:71
+#: pretix_paymentdibs/payment.py:91
 msgid "Capture now"
 msgstr ""
 
-#: pretix_paymentdibs/payment.py:74
+#: pretix_paymentdibs/payment.py:94
 #, python-brace-format
 msgid ""
 "If set, payments will be captured immediately (cf. <a target=\"_blank\" rel="
 "\"noopener\" href=\"{docs_url}\">{docs_url}</a>)"
 msgstr ""
 
-#: pretix_paymentdibs/payment.py:81 pretix_paymentdibs/payment.py:99
-#: pretix_paymentdibs/payment.py:112
+#: pretix_paymentdibs/payment.py:101 pretix_paymentdibs/payment.py:119
+#: pretix_paymentdibs/payment.py:132
 msgid "MD5-control of payments"
 msgstr "Kontrol af betalinger med md5-koder"
 
-#: pretix_paymentdibs/payment.py:84
+#: pretix_paymentdibs/payment.py:104
 #, python-brace-format
 msgid ""
 "MD5-control of payments (cf. <a target=\"_blank\" rel=\"noopener\" href="
 "\"{docs_url}\">{docs_url}</a>)"
 msgstr ""
 
-#: pretix_paymentdibs/payment.py:91
+#: pretix_paymentdibs/payment.py:111
 msgid "MD5 key 1"
 msgstr "Md5-nøgle 1"
 
-#: pretix_paymentdibs/payment.py:95
+#: pretix_paymentdibs/payment.py:115
 #, python-brace-format
 msgid ""
 "MD5 key 1 (32 characters) (cf. <a target=\"_blank\" rel=\"noopener\" href="
@@ -77,11 +77,11 @@ msgstr ""
 "Md5-nøgle 1 (32 tegn) (jf. <a target=“_blank” rel=“noopener” "
 "href=“{docs_url}”>{docs_url}</a>) (påkrævet hvis “{parent_control}” er sat)"
 
-#: pretix_paymentdibs/payment.py:104
+#: pretix_paymentdibs/payment.py:124
 msgid "MD5 key 2"
 msgstr "Md5-nøgle 1"
 
-#: pretix_paymentdibs/payment.py:108
+#: pretix_paymentdibs/payment.py:128
 #, python-brace-format
 msgid ""
 "MD5 key 2 (32 characters) (cf. <a target=\"_blank\" rel=\"noopener\" href="
@@ -90,27 +90,27 @@ msgstr ""
 "Md5-nøgle 2 (32 tegn) (jf. <a target=“_blank” rel=“noopener” "
 "href=“{docs_url}”>{docs_url}</a>) (påkrævet hvis “{parent_control}” er sat)"
 
-#: pretix_paymentdibs/payment.py:117
+#: pretix_paymentdibs/payment.py:137
 msgid "Decorator"
 msgstr "Visning"
 
-#: pretix_paymentdibs/payment.py:119
+#: pretix_paymentdibs/payment.py:139
 msgid "Default"
 msgstr "Standard"
 
-#: pretix_paymentdibs/payment.py:120
+#: pretix_paymentdibs/payment.py:140
 msgid "Basal"
 msgstr "Basis"
 
-#: pretix_paymentdibs/payment.py:121
+#: pretix_paymentdibs/payment.py:141
 msgid "Rich"
 msgstr "Rigt"
 
-#: pretix_paymentdibs/payment.py:122
+#: pretix_paymentdibs/payment.py:142
 msgid "Responsive"
 msgstr "Responsivt"
 
-#: pretix_paymentdibs/payment.py:125
+#: pretix_paymentdibs/payment.py:145
 #, python-brace-format
 msgid ""
 "(cf. <a target=\"_blank\" rel=\"noopener\" href=\"{docs_url}\">{docs_url}</"
@@ -118,9 +118,34 @@ msgid ""
 msgstr ""
 "(jf. <a target=“_blank” rel=“noopener” href=“{docs_url}”>{docs_url}</a>)"
 
+#: pretix_paymentdibs/payment.py:224 pretix_paymentdibs/payment.py:269
+#, python-brace-format
+msgid ""
+"Missing DIBS api username and password for merchant {merchant}. Order cannot "
+"be refunded in DIBS."
+msgstr ""
+
+#: pretix_paymentdibs/payment.py:287
+msgid ""
+"The order has been marked as refunded and the money have been refunded in "
+"DIBS."
+msgstr ""
+
+#: pretix_paymentdibs/payment.py:289
+#, python-brace-format
+msgid "Error refunding in DIBS ({status}; {result}; {message})"
+msgstr ""
+
 #: pretix_paymentdibs/templates/pretix_paymentdibs/checkout_confirm.html:3
 msgid "You will be redirected to DIBS after placing your order."
 msgstr "Du bliver viderestillet til DIBS efter at have afgivet din ordre."
+
+#: pretix_paymentdibs/templates/pretix_paymentdibs/control_refund.html:6
+#, python-format
+msgid ""
+"If you confirm the refund, %(amount)s %(currency)s will be transfered back "
+"to the customer."
+msgstr "Hvis du bekræfter tilbagebetalingen, vil %(amount)s %(currency)s blive ført tilbage til kunden."
 
 #: pretix_paymentdibs/templates/pretix_paymentdibs/mail_text.html:6
 #: pretix_paymentdibs/templates/pretix_paymentdibs/order_paid.html:9
