@@ -1,7 +1,24 @@
 Card payment using DIBS
 =======================
 
-This is a plugin for `pretix`_. 
+
+Refunding
+---------
+
+For refunding in DIBS, authorization must be configured (in
+`pretix.cfg`), e.g.:
+
+
+.. code-block::
+
+  [pretix_paymentdibs]
+	; DIBS api authorization (api_auth[«merchant»] = «username»:«password»)
+  api_auth[12345678] = 12345678:dV2BD3h3s9
+
+Api users are created in the DIBS administration (User Setup > API users).
+
+
+This is a plugin for `pretix`_.
 
 Development setup
 -----------------
