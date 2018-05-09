@@ -225,9 +225,11 @@ class DIBS(BasePaymentProvider):
                                       ' Order cannot be refunded in DIBS.').format(merchant=merchant))
 
         template = get_template('pretix_paymentdibs/control_refund.html')
+        info = json.loads(order.payment_info)
         ctx = {
             'request': request,
             'event': self.event,
+            'info': info,
             'order': order
         }
         return template.render(ctx)
@@ -237,7 +239,7 @@ class DIBS(BasePaymentProvider):
         merchant = self.settings.get('merchant_id')
         transact = info['transact']
         amount = info['amount']
-        currency = pycountry.currencies.get(alpha_3=info['currency']).numeric
+        currency = info['currency']
         orderid = info['orderid']
 
         payload = {
