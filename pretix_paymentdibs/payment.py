@@ -26,6 +26,96 @@ class DIBS(BasePaymentProvider):
     ])
     # https://tech.dibspayment.com/D2/Hosted/Input_parameters/Standard
 
+    CARD_TYPE_CREDIT = 'credit'
+    CARD_TYPE_DEBIT = 'debit'
+
+    # https://tech.dibspayment.com/D2/Toolbox/Paytypes
+    #
+    # 'AAK', # Århus city kort
+    # 'ACCEPT', # Acceptcard
+    # 'ACK', # Albertslund Centrum Kundekort
+    # 'AKK', # Apollo-/Kuonikonto
+    # 'AMEX', # American Express
+    # 'AMEX(DK)', # American Express (DK)
+    # 'AMEX(SE)', # American Express (SE)
+    # 'BHBC', # Bauhaus BestCard
+    # 'CCK', # Computer City
+    # 'DAELLS', # Daells Bolighus Kundekort
+    # 'DIN', # Diners Club
+    # 'DIN(DK)', # Diners Club (DK)
+    # 'DKW', # Dankort app
+    # 'EWORLD', # Electronic World Credit Card
+    # 'FCC', # Ford CreditCard
+    # 'FCK', # Frederiksberg Centret Kundekort
+    # 'FFK', # Forbrugsforeningen
+    # 'FINX(SE)', # Finax (SE)
+    # 'FISC', # Fields Shoppingcard
+    # 'FLEGCARD', # Fleggard kort
+    # 'FSC', # Fisketorvet Shopping Card
+    # 'GIT', # Getitcard
+    # 'GSC', # Glostrup Shopping Card
+    # 'HEME', # Hemtex faktura
+    # 'HEMP', # Hemtex personalkort
+    # 'HEMTX', # Hemtex clubkort
+    # 'HMK', # HM Konto
+    # 'HNYBORG', # Harald Nyborg
+    # 'HSC', # Hillerød Shopping Card
+    # 'HTX', # Hydro Texaco
+    # 'IBC', # Inspiration Best Card
+    # 'IKEA', # IKEA kort
+    # 'ISHBY', # Sparbank Vestkort
+    # 'JCB', # JCB
+    # 'JEM_FIX', # Jem&amp;Fix Kundekort
+    # 'KAUPBK', # Kaupthing Bankkort
+    # 'LFBBK', # Länsförsäkringar Bank Bankkort
+    # 'LIC(DK)', # LIC kort (DK)
+    # 'LIC(SE)', # LIC kort (SE)
+    # 'LOPLUS', # LO Plus Guldkort
+    # 'MEDM', # Medmera
+    # 'MERLIN', # Merlin Kreditkort
+    # 'MGNGC', # Magasin Goodie Card
+    # 'MPO_Nets', # MobilePay Online (Nets)
+    # 'MTRO', # Maestro
+    # 'MTRO(DK)', # Maestro (DK)
+    # 'MTRO(UK)', # Maestro (UK)
+    # 'MTRO(SOLO)', # Solo
+    # 'MTRO(SE)', # Maestro (SE)
+    # 'MYHC', # My Holiday Card
+    # 'NSBK', # Nordea Bankkort
+    # 'OESBK', # Östgöta Enskilda Bankkort
+    # 'Q8SK', # Q8 ServiceKort
+    # 'REB', # Resurs Bank
+    # 'REMCARD', # Remember Card
+    # 'ROEDCEN', # Rødovre Centerkort
+    # 'S/T', # Spies/Tjæreborg
+    # 'SBSBK', # Skandiabanken Bankkort
+    # 'SEB_KOBK', # SEB Köpkort
+    # 'SEBSBK', # SEB Bankkort
+    # 'SHB_KB', # Handelsbanken Köpkort
+    # 'SILV_ERHV', # Silvan Konto Erhverv
+    # 'SILV_PRIV', # Silvan Konto Privat
+    # 'STARTOUR', # Star Tour
+    # 'TLK', # Tæppeland
+    # 'TUBC', # Toys R Us - BestCard
+    # 'VEKO', # VEKO Finans
+    # 'WOCO', # Wonderful Copenhagen Card
+    CARD_TYPES = {
+        CARD_TYPE_CREDIT: [
+            'MC',           # Mastercard
+            'MC(DK)',       # Mastercard (DK)
+            'MC(SE)',       # Mastercard (SE)
+            'MC(YX)',       # YX Mastercard
+            'VISA',         # VISA
+            'VISA(SE)',     # VISA (SE)
+        ],
+        CARD_TYPE_DEBIT: [
+            'DK',           # Dankort
+            'ELEC',         # VISA Electron
+            'V-DK',         # VISA-Dankort
+            'VISA(DK)',     # VISA (DK)
+        ]
+    }
+
     # https://tech.dibspayment.com/nodeaddpage/toolboxstatuscodes
     STATUS_CODE_TRANSACTION_INSERTED = 0
     STATUS_CODE_DECLINED = 1
@@ -318,6 +408,20 @@ class DIBS(BasePaymentProvider):
         Order codes are only unique within events.
         """
         return order.event.organizer.slug + '/' + order.event.slug + '/' + order.code
+
+    @staticmethod
+    def get_payment_card_type(order):
+        """
+        Get the payment card type, "credit","debit" or None.
+        """
+        info = json.loads(order.payment_info)
+        paytype = info['paytype'] if 'paytype' in info else None
+
+        for type, paytypes in DIBS.CARD_TYPES.items():
+            if paytype in paytypes:
+                return type
+
+        return None
 
     @staticmethod
     def get_order(order_id):
