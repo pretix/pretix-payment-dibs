@@ -101,18 +101,18 @@ class DIBS(BasePaymentProvider):
     # 'WOCO', # Wonderful Copenhagen Card
     CARD_TYPES = {
         CARD_TYPE_CREDIT: [
+            'ELEC',         # VISA Electron
             'MC',           # Mastercard
             'MC(DK)',       # Mastercard (DK)
             'MC(SE)',       # Mastercard (SE)
             'MC(YX)',       # YX Mastercard
             'VISA',         # VISA
+            'VISA(DK)',     # VISA (DK)
             'VISA(SE)',     # VISA (SE)
         ],
         CARD_TYPE_DEBIT: [
             'DK',           # Dankort
-            'ELEC',         # VISA Electron
             'V-DK',         # VISA-Dankort
-            'VISA(DK)',     # VISA (DK)
         ]
     }
 
