@@ -21,7 +21,8 @@ logger = logging.getLogger('pretix.plugins.payment_dibs')
 
 class DIBS(BasePaymentProvider):
     identifier = 'dibs'
-    verbose_name = _('DIBS')
+    verbose_name = _('Nets / DIBS')
+    public_name = _('Card or MobilePay')
     payment_form_fields = OrderedDict([
     ])
     # https://tech.dibspayment.com/D2/Hosted/Input_parameters/Standard
