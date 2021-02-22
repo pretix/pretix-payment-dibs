@@ -11,7 +11,9 @@ from django import forms
 from django.contrib import messages
 from django.template.loader import get_template
 from django.utils.translation import ugettext_lazy as _
-from pretix.base.models import Event, Order, Organizer
+
+from pretix.base.forms import SecretKeySettingsField
+from pretix.base.models import Event, Order, Organizer, OrderPayment
 from pretix.base.payment import BasePaymentProvider
 from pretix.base.services.orders import mark_order_paid
 from pretix.multidomain.urlreverse import build_absolute_uri
@@ -23,10 +25,9 @@ class DIBS(BasePaymentProvider):
     identifier = 'dibs'
     verbose_name = _('Nets / DIBS')
     public_name = _('Card or MobilePay')
-    payment_form_fields = OrderedDict([
-    ])
-    # https://tech.dibspayment.com/D2/Hosted/Input_parameters/Standard
+    payment_form_fields = OrderedDict([])
 
+    # https://tech.dibspayment.com/D2/Hosted/Input_parameters/Standard
     CARD_TYPE_CREDIT = 'credit'
     CARD_TYPE_DEBIT = 'debit'
 
@@ -236,19 +237,31 @@ class DIBS(BasePaymentProvider):
                  help_text=_('(cf. <a target="_blank" rel="noopener" href="{docs_url}">{docs_url}</a>)').format(
                      docs_url='https://tech.dibspayment.com/D2/Hosted/Input_parameters/Standard'
                  )
-             ))
+             )),
+            ('api_user',
+             forms.CharField(
+                 label=_('API Username'),
+                 help_text=_('Required for refunds. Can be set up at Setup > User Setup > API users.').format(
+                     docs_url='https://tech.dibspayment.com/D2/Hosted/Input_parameters/Standard'
+                 )
+             )),
+            ('api_password',
+             SecretKeySettingsField(
+                 label=_('API Password'),
+                 help_text=_('Required for refunds. Can be set up at Setup > User Setup > API users.').format(
+                     docs_url='https://tech.dibspayment.com/D2/Hosted/Input_parameters/Standard'
+                 )
+             )),
+
         ] + list(super().settings_form_fields.items()))
         d.move_to_end('_enabled', last=False)
 
         return d
 
-    def settings_content_render(self, request):
-        pass
-
     def payment_is_valid_session(self, request):
         return True
 
-    def payment_form_render(self, request) -> str:
+    def payment_form_render(self, request, total, order=None) -> str:
         template = get_template('pretix_paymentdibs/payment_form.html')
         ctx = {
             'request': request,
@@ -261,7 +274,7 @@ class DIBS(BasePaymentProvider):
     def checkout_prepare(self, request, cart):
         return True
 
-    def checkout_confirm_render(self, request) -> str:
+    def checkout_confirm_render(self, request, order=None) -> str:
         template = get_template('pretix_paymentdibs/checkout_confirm.html')
         ctx = {
             'request': request,
@@ -270,43 +283,11 @@ class DIBS(BasePaymentProvider):
         }
         return template.render(ctx)
 
-    def payment_perform(self, request, order) -> str:
-        return self._redirect_to_dibs(request, order)
+    def execute_payment(self, request, payment) -> str:
+        return self._redirect_to_dibs(request, payment)
 
-    def order_pending_render(self, request, order) -> str:
-        template = get_template('pretix_paymentdibs/order_pending.html')
-        ctx = {
-            'request': request,
-            'event': self.event,
-            'order': order
-        }
-        return template.render(ctx)
-
-    def order_pending_mail_render(self, order) -> str:
-        template = get_template('pretix_paymentdibs/order_pending_mail.html')
-        ctx = {
-            'event': self.event,
-            'order': order
-        }
-        return template.render(ctx)
-
-    def order_paid_render(self, request, order) -> str:
-        template = get_template('pretix_paymentdibs/order_paid.html')
-        info = json.loads(order.payment_info)
-        ctx = {
-            'request': request,
-            'order': order,
-            'event': self.event,
-            'info': info,
-            'status': 'captured' if int(info['statuscode']) == DIBS.STATUS_CODE_CAPTURE_COMPLETED else 'reserved'
-        }
-        return template.render(ctx)
-
-    def order_can_retry(self, order):
-        return self._is_still_available(order=order)
-
-    def order_prepare(self, request, order):
-        return self._redirect_to_dibs(request, order)
+    def payment_prepare(self, request, order):
+        return True
 
     def order_control_refund_render(self, order, request):
         merchant = self.settings.get('merchant_id')
@@ -383,32 +364,22 @@ class DIBS(BasePaymentProvider):
         return None
 
     def get_api_authorization(self, merchant):
-        from pretix.settings import config
+        return self.settings.get('api_user'), self.settings.get('api_password')
 
-        section = 'pretix_paymentdibs'
-        option = 'api_auth[{}]'.format(merchant)
-        data = config.get(section, option) if config.has_option(section, option) else None
-
-        try:
-            return data.split(':')
-        except Exception as e:
-            return (None, None)
+    @property
+    def currency_code(self):
+        return str(pycountry.currencies.get(alpha_3=self.event.currency).numeric)
 
     @staticmethod
-    def get_currency_code(order):
-        return str(pycountry.currencies.get(alpha_3=order.event.currency).numeric)
+    def get_amount(total):
+        return str(int(100 * total))
 
-    @staticmethod
-    def get_amount(order):
-        return str(int(100 * order.total))
-
-    @staticmethod
-    def get_order_id(order):
+    def get_order_id(self, payment):
         """
         Construct unique DIBS order id.
         Order codes are only unique within events.
         """
-        return order.event.organizer.slug + '/' + order.event.slug + '/' + order.code
+        return self.event.organizer.slug + '/' + self.event.slug + '/' + payment.order.code + '/' + str(payment.local_id)
 
     @staticmethod
     def get_payment_card_type(order):
@@ -425,40 +396,38 @@ class DIBS(BasePaymentProvider):
         return None
 
     @staticmethod
-    def get_order(order_id):
-        """Get order from DIBS order id"""
+    def get_order_payment(order_id):
+        """Get orderpayment from DIBS order id"""
         # An order code only contains alphanumeric characters.
-        match = re.search('^(?P<organizer>.+)/(?P<event>.+)/(?P<code>.+)$', order_id)
+        match = re.search('^(?P<organizer>.+)/(?P<event>.+)/(?P<code>.+)/(?P<payment>[0-9]+)$', order_id)
         if match is None:
             return None
-        organizer = Organizer.objects.get(slug=match.group('organizer'))
-        event = Event.objects.get(organizer=organizer.id, slug=match.group('event'))
+        event = Event.objects.get(organizer__slug=match.group('organizer'), slug=match.group('event'))
+        return OrderPayment.objects.get(order__code=match.group('code'), order__event=event, local_id=match.group('payment'))
 
-        return Order.objects.get(code=match.group('code'), event=event.id)
-
-    def _redirect_to_dibs(self, request, order):
-        self.set_payment_info(request, order)
-
+    def _redirect_to_dibs(self, request, payment):
+        self.set_payment_info(request, payment)
         return build_absolute_uri(request.event, 'plugins:pretix_paymentdibs:redirect')
 
-    def set_payment_info(self, request, order):
-        request.session['payment_dibs_payment_info'] = json.dumps({
-            'order_id': DIBS.get_order_id(order),
-            'amount': int(100 * order.total),
-            'currency': DIBS.get_currency_code(order),
+    def set_payment_info(self, request, payment):
+        request.session['payment_dibs_payment_info'] = {
+            'order_id': self.get_order_id(payment),
+            'order_code': payment.order.code,
+            'order_secret': payment.order.secret,
+            'payment_id': payment.pk,
+            'amount': int(100 * payment.amount),
+            'currency': self.currency_code,
             'merchant_id': self.settings.get('merchant_id'),
             'test_mode': self.settings.get('test_mode') == 'True',
-            'md5key': self._calculate_md5key(order),
+            'md5key': self._calculate_md5key(payment),
             'decorator': self.settings.get('decorator'),
             'capturenow': self.settings.get('capturenow') == 'True',
             'ordertext': None
-        })
+        }
 
     @staticmethod
     def get_payment_info(request):
-        info = json.loads(request.session['payment_dibs_payment_info'])
-
-        return info
+        return request.session['payment_dibs_payment_info']
 
     @staticmethod
     def validate_callback(request):
@@ -480,7 +449,7 @@ class DIBS(BasePaymentProvider):
 
         if status_code in {DIBS.STATUS_CODE_AUTHORIZATION_APPROVED, DIBS.STATUS_CODE_CAPTURE_COMPLETED}:
             payment_provider = order.event.get_payment_providers()[order.payment_provider]
-            if payment_provider.validate_transaction(order, parameters):
+            if payment_provider.validate_transaction(payment, parameters):
                 template = get_template('pretix_paymentdibs/mail_text.html')
                 ctx = {
                     'order': order,
@@ -496,7 +465,7 @@ class DIBS(BasePaymentProvider):
 
         return False
 
-    def validate_transaction(self, order, parameters):
+    def validate_transaction(self, payment, parameters):
         if not self.settings.get('use_md5key'):
             return True
 
@@ -505,14 +474,14 @@ class DIBS(BasePaymentProvider):
         key2 = self.settings.get('md5_key2')
 
         transact = parameters['transact']
-        currency = DIBS.get_currency_code(order)
-        amount = DIBS.get_amount(order)
+        currency = self.currency_code
+        amount = DIBS.get_amount(payment.amount)
 
         authkey = DIBS.md5(key2 + DIBS.md5(key1 + 'transact=' + transact + '&amount=' + amount + '&currency=' + currency))
 
         return parameters['authkey'] == authkey
 
-    def _calculate_md5key(self, order):
+    def _calculate_md5key(self, payment):
         if not self.settings.get('use_md5key'):
             return None
 
@@ -520,9 +489,9 @@ class DIBS(BasePaymentProvider):
         key1 = self.settings.get('md5_key1')
         key2 = self.settings.get('md5_key2')
         merchant = self.settings.get('merchant_id')
-        orderid = DIBS.get_order_id(order)
-        currency = DIBS.get_currency_code(order)
-        amount = DIBS.get_amount(order)
+        orderid = self.get_order_id(payment)
+        currency = self.currency_code
+        amount = DIBS.get_amount(payment.amount)
 
         parameters = 'merchant=' + merchant + '&orderid=' + orderid + '&currency=' + currency + '&amount=' + amount
         inner_md5 = DIBS.md5(key1 + parameters)

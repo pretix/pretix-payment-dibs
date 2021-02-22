@@ -2,7 +2,7 @@
 
 {% load i18n %}
 {% load bootstrap3 %}
-{% load staticfiles %}
+{% load static %}
 {% load compress %}
 
 {% block thetitle %}{% trans "Redirecting to DIBS payment" %}{% endblock %}
@@ -19,9 +19,7 @@
 	<input type="hidden" name="currency" value="{{ currency }}">
 	<input type="hidden" name="merchant" value="{{ merchant_id }}">
 	<input type="hidden" name="orderid" value="{{ order_id }}">
-	{% if callback_url %}
 	<input type="hidden" name="callbackurl" value="{{ callback_url }}">
-	{% endif %}
 	{% if test_mode %}
 	<input type="hidden" name="test" value="1">
 	{% endif %}

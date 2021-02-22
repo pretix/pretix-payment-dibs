@@ -1,22 +1,13 @@
 from django.conf.urls import include, url
+
 from pretix.multidomain import event_url
+from .views import callback, redirect_view, ReturnView
 
-from .views import abort, callback, redirect_view, success
-
-# Frontend patterns
 event_patterns = [
     url(r'^pretix_paymentdibs/', include([
-        url(r'^abort/$', abort, name='abort'),
-        url(r'^return/$', success, name='return'),
+        event_url(r'^webhook/(?P<payment>[0-9]+)/$', callback, name='webhook', require_live=False),
         url(r'^redirect/$', redirect_view, name='redirect'),
-
-        url(r'w/(?P<cart_namespace>[a-zA-Z0-9]{16})/abort/', abort, name='abort'),
-        url(r'w/(?P<cart_namespace>[a-zA-Z0-9]{16})/return/', success, name='return'),
-
-        event_url(r'^callback/$', callback, name='callback', require_live=False),
+        url(r'^return/(?P<order>[^/]+)/(?P<hash>[^/]+)/(?P<payment>[0-9]+)/(?P<action>[^/]+)$', ReturnView.as_view(),
+            name='return'),
     ])),
-]
-
-urlpatterns = [
-    url(r'^_pretix_paymentdibs/callback/$', callback, name='callback'),
 ]
