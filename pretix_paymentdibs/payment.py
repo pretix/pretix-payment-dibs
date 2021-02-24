@@ -206,7 +206,7 @@ class DIBS(BasePaymentProvider):
              )),
             ('decorator',
              forms.ChoiceField(
-                 label=_('Decorator'),
+                 label=_('Payment page design'),
                  choices=(
                      ('default', _('Default')),
                      ('basal', _('Basal')),
