@@ -223,7 +223,7 @@ class DIBS(BasePaymentProvider):
                      ('rich', _('Rich')),
                      ('responsive', _('Responsive'))
                  ),
-                 initial='default',
+                 initial='responsive',
                  help_text=_('(cf. <a target="_blank" rel="noopener" href="{docs_url}">{docs_url}</a>)').format(
                      docs_url='https://tech.dibspayment.com/D2/Hosted/Input_parameters/Standard'
                  )
