@@ -180,16 +180,6 @@ class DIBS(BasePaymentProvider):
                      docs_url='https://tech.dibspayment.com/D2/Hosted/Input_parameters/Standard'
                  )
              )),
-            ('capturenow',
-             forms.BooleanField(
-                 label=_('Capture now'),
-                 required=False,
-                 initial=False,
-                 help_text=_('If set, payments will be captured immediately'
-                             ' (cf. <a target="_blank" rel="noopener" href="{docs_url}">{docs_url}</a>)').format(
-                     docs_url='https://tech.dibspayment.com/D2/Hosted/Input_parameters/Standard'
-                 )
-             )),
             ('md5_key1',
              forms.CharField(
                  label=_('MD5 key 1'),
@@ -409,7 +399,7 @@ class DIBS(BasePaymentProvider):
             'test_mode': self.settings.get('test_mode') == 'True',
             'md5key': self._calculate_md5key(payment),
             'decorator': self.settings.get('decorator'),
-            'capturenow': self.settings.get('capturenow') == 'True',
+            'capturenow': True,
             'ordertext': None
         }
 
