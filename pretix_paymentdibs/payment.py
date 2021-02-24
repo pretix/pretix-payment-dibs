@@ -10,11 +10,13 @@ import requests
 from django import forms
 from django.contrib import messages
 from django.template.loader import get_template
+from django.utils.timezone import now
 from django.utils.translation import ugettext_lazy as _
 
 from pretix.base.forms import SecretKeySettingsField
-from pretix.base.models import Event, Order, Organizer, OrderPayment
-from pretix.base.payment import BasePaymentProvider
+from pretix.base.models import Event, Order, Organizer, OrderPayment, Quota, OrderRefund
+from pretix.base.payment import BasePaymentProvider, PaymentException
+from pretix.base.services.mail import SendMailException
 from pretix.base.services.orders import mark_order_paid
 from pretix.multidomain.urlreverse import build_absolute_uri
 
@@ -289,35 +291,23 @@ class DIBS(BasePaymentProvider):
     def payment_prepare(self, request, order):
         return True
 
-    def order_control_refund_render(self, order, request):
-        merchant = self.settings.get('merchant_id')
-        (username, password) = self.get_api_authorization(merchant)
-        if username is None or password is None:
-            messages.error(request, _('Missing DIBS api username and password for merchant {merchant}.'
-                                      ' Order cannot be refunded in DIBS.').format(merchant=merchant))
+    def payment_refund_supported(self, payment: OrderPayment) -> bool:
+        return all(self.get_api_authorization())
 
-        template = get_template('pretix_paymentdibs/control_refund.html')
-        info = json.loads(order.payment_info)
-        ctx = {
-            'request': request,
-            'event': self.event,
-            'info': info,
-            'order': order
-        }
-        return template.render(ctx)
+    def payment_partial_refund_supported(self, payment: OrderPayment) -> bool:
+        return all(self.get_api_authorization())
 
-    def order_control_refund_perform(self, request, order):
-        info = json.loads(order.payment_info)
+    def execute_refund(self, refund):
+        info = refund.payment.info_data
         merchant = self.settings.get('merchant_id')
         transact = info['transact']
-        amount = info['amount']
         currency = info['currency']
         orderid = info['orderid']
 
         payload = {
             'merchant': merchant,
             'transact': transact,
-            'amount': amount,
+            'amount': DIBS.get_amount(refund.amount),
             'currency': currency,
             'orderid': orderid,
             'textreply': 'true',
@@ -332,15 +322,14 @@ class DIBS(BasePaymentProvider):
             key1 = self.settings.get('md5_key1')
             key2 = self.settings.get('md5_key2')
 
-            parameters = 'merchant=' + merchant + '&orderid=' + orderid + '&transact=' + transact + '&amount=' + amount
+            parameters = 'merchant=' + merchant + '&orderid=' + orderid + '&transact=' + transact + '&amount=' + DIBS.get_amount(refund.amount)
             md5key = DIBS.md5(key2 + DIBS.md5(key1 + parameters))
             payload['md5key'] = md5key
 
-        (username, password) = self.get_api_authorization(merchant)
+        (username, password) = self.get_api_authorization()
         if username is None or password is None:
-            messages.error(request, _('Missing DIBS api username and password for merchant {merchant}.'
-                                      ' Order cannot be refunded in DIBS.').format(merchant=merchant))
-            return None
+            raise PaymentException(_('Missing DIBS api username and password for merchant {merchant}.'
+                                     ' Order cannot be refunded in DIBS.').format(merchant=merchant))
 
         # https://tech.dibspayment.com/D2/API/Payment_functions/refundcgi
         url = 'https://{}:{}@payment.architrade.com/cgi-adm/refund.cgi'.format(username, password)
@@ -351,20 +340,30 @@ class DIBS(BasePaymentProvider):
         status = data['status'][0] if 'status' in data else None
         result = int(data['result'][0]) if 'result' in data else -1
         message = data['message'][0] if 'message' in data else None
+        refund.info_data = data
 
         if result == DIBS.REFUND_ACCEPTED:
-            from pretix.base.services.orders import mark_order_refunded
-
-            mark_order_refunded(order, user=request.user)
-            messages.success(request, _('The order has been marked as refunded and the money have been refunded in DIBS.'))
+            refund.done()
         else:
-            messages.error(request, _('Error refunding in DIBS ({status}; {result}; {message})'.format(status=status, result=result, message=message)))
-            logger.error(['order_control_refund_perform', r.text, r.status_code, info])
+            refund.state = OrderRefund.REFUND_STATE_FAILED
+            refund.execution_date = now()
+            refund.save()
+            raise PaymentException(_('Error refunding in DIBS ({status}; {result}; {message})'.format(status=status, result=result, message=message.strip())))
 
-        return None
-
-    def get_api_authorization(self, merchant):
+    def get_api_authorization(self):
         return self.settings.get('api_user'), self.settings.get('api_password')
+
+    def payment_control_render(self, request, payment) -> str:
+        template = get_template('pretix_paymentdibs/control.html')
+        ctx = {
+            'request': request,
+            'event': self.event,
+            'settings': self.settings,
+            'payment_info': payment.info_data,
+            'payment': payment,
+            'provider': self,
+        }
+        return template.render(ctx)
 
     @property
     def currency_code(self):
@@ -430,15 +429,15 @@ class DIBS(BasePaymentProvider):
         return request.session['payment_dibs_payment_info']
 
     @staticmethod
-    def validate_callback(request):
+    def process_callback(request, log=True):
         # @see https://tech.dibspayment.com/D2/Hosted/Output_parameters/Return_pages
         # @see https://tech.dibspayment.com/D2/Hosted/Output_parameters/Return_parameters
         parameters = request.POST if request.method == 'POST' else request.GET
 
         order_id = parameters.get('orderid')
-        order = DIBS.get_order(order_id)
+        payment = DIBS.get_order_payment(order_id)
 
-        if order.payment_provider != DIBS.identifier:
+        if payment.provider != DIBS.identifier or payment.order.event != request.event:
             return False
 
         info = json.loads(json.dumps(parameters))
@@ -447,23 +446,18 @@ class DIBS(BasePaymentProvider):
         info['statuscode'] = int(info['statuscode'])
         status_code = info['statuscode']
 
+        payment.order.log_action('pretix_paymentdibs.callback', data=info)
+
         if status_code in {DIBS.STATUS_CODE_AUTHORIZATION_APPROVED, DIBS.STATUS_CODE_CAPTURE_COMPLETED}:
-            payment_provider = order.event.get_payment_providers()[order.payment_provider]
+            payment_provider = payment.payment_provider
             if payment_provider.validate_transaction(payment, parameters):
-                template = get_template('pretix_paymentdibs/mail_text.html')
-                ctx = {
-                    'order': order,
-                    'info': info,
-                    'status': 'captured' if status_code == DIBS.STATUS_CODE_CAPTURE_COMPLETED else 'reserved'
-                }
-
-                mail_text = template.render(ctx)
-                # https://tech.dibspayment.com/D2/API/Payment_functions/capturecgi
-                mark_order_paid(order, DIBS.identifier, send_mail=True, info=json.dumps(info), mail_text=mail_text)
-
-                return True
-
-        return False
+                try:
+                    payment.info_data = info
+                    payment.confirm()
+                except Quota.QuotaExceededException as e:
+                    raise PaymentException(str(e))
+                except SendMailException:
+                    raise PaymentException(_('There was an error sending the confirmation mail.'))
 
     def validate_transaction(self, payment, parameters):
         if not self.settings.get('use_md5key'):

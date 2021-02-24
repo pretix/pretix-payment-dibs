@@ -13,6 +13,7 @@ from django.views.decorators.csrf import csrf_exempt
 from pretix_paymentdibs.payment import DIBS
 
 from pretix.base.models import Order, OrderPayment
+from pretix.base.payment import PaymentException
 from pretix.multidomain.urlreverse import build_absolute_uri, eventreverse
 
 logger = logging.getLogger('pretix.plugins.payment_dibs')
@@ -33,6 +34,12 @@ def redirect_view(request, *args, **kwargs):
             'hash': hashlib.sha1(info['order_secret'].lower().encode()).hexdigest(),
             'action': 'success'
         }),
+        'cancel_url': build_absolute_uri(request.event, 'plugins:pretix_paymentdibs:return', kwargs={
+            'order': info['order_code'],
+            'payment': info['payment_id'],
+            'hash': hashlib.sha1(info['order_secret'].lower().encode()).hexdigest(),
+            'action': 'cancel'
+        }),
     })
 
     return render(request, template, ctx)
@@ -40,7 +47,10 @@ def redirect_view(request, *args, **kwargs):
 
 @csrf_exempt
 def callback(request, **kwargs):
-    DIBS.validate_callback(request)
+    try:
+        DIBS.process_callback(request)
+    except PaymentException as e:
+        logger.exception('Payment exception in callback')
 
     return HttpResponse(status=200)
 
@@ -71,8 +81,21 @@ class DIBSOrderView:
 
 
 @method_decorator(xframe_options_exempt, 'dispatch')
+@method_decorator(csrf_exempt, 'dispatch')
 class ReturnView(DIBSOrderView, View):
     def get(self, request, *args, **kwargs):
+        return self.post(request, *args, **kwargs)
+
+
+    def post(self, request, *args, **kwargs):
+        if kwargs.get('action') == 'success':
+            try:
+                DIBS.process_callback(request, log=False)
+            except PaymentException as e:
+                messages.error(request, str(e))
+        else:
+            self.payment.fail(info={'action': 'cancel'})
+            pass
         return self._redirect_to_order()
 
     def _redirect_to_order(self):

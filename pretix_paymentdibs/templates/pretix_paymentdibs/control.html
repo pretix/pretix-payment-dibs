@@ -1,0 +1,20 @@
+{% load i18n %}
+
+{% if payment_info %}
+    {% if "transact" in payment_info %}
+        <dl class="dl-horizontal">
+            <dt>{% trans "Transaction" %}</dt>
+            <dd>{{ payment_info.transact }}</dd>
+            <dt>{% trans "Payment type" %}</dt>
+            <dd>{{ payment_info.paytype }}</dd>
+            <dt>{% trans "Card number" %}</dt>
+            <dd>{{ payment_info.cardnomask }}</dd>
+            <dt>{% trans "Card expiry" %}</dt>
+            <dd>{{ payment_info.cardexpdate }}</dd>
+            <dt>{% trans "Card country" %}</dt>
+            <dd>{{ payment_info.cardcountry }}</dd>
+            <dt>{% trans "Status code" %}</dt>
+            <dd>{{ payment_info.statuscode }}</dd>
+        </dl>
+    {% endif %}
+{% endif %}
