@@ -3,36 +3,34 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2021-02-24 12:35+0100\n"
-"PO-Revision-Date: 2018-05-09 12:52+0200\n"
+"PO-Revision-Date: 2021-02-24 15:14+0100\n"
 "Last-Translator: Mikkel Ricky\n"
 "Language-Team: \n"
 "Language: da\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 2.0.6\n"
+"X-Generator: Poedit 2.4.2\n"
 
 #: pretix_paymentdibs/__init__.py:10 pretix_paymentdibs/payment.py:28
 msgid "Nets / DIBS"
-msgstr ""
+msgstr "Nets / DIBS"
 
 #: pretix_paymentdibs/__init__.py:12
 msgid "Card payment using Scandinavic payment provider Nets / DIBS"
-msgstr ""
+msgstr "Kortbetaling via Nets / DIBS"
 
 #: pretix_paymentdibs/payment.py:29
-#, fuzzy
-#| msgid "Pay with card or MobilePay."
 msgid "Card or MobilePay"
-msgstr "Betal med kort eller MobilePay."
+msgstr "Betal med kort eller MobilePay"
 
 #: pretix_paymentdibs/payment.py:168
 msgid "Merchant ID"
-msgstr ""
+msgstr "Merchant ID"
 
 #: pretix_paymentdibs/payment.py:171
 msgid "The Merchant ID issued by DIBS"
-msgstr ""
+msgstr "Merchant ID udstedt af DIBS"
 
 #: pretix_paymentdibs/payment.py:175
 msgid "Test mode"
@@ -49,37 +47,37 @@ msgstr ""
 
 #: pretix_paymentdibs/payment.py:185
 msgid "MD5 key 1"
-msgstr "Md5-nøgle 1"
+msgstr "MD5-nøgle 1"
 
 #: pretix_paymentdibs/payment.py:188
 #, python-brace-format
 msgid ""
 "MD5 key 1 (32 characters) (cf. <a target=\"_blank\" rel=\"noopener\" href="
-"\"{docs_url}\">{docs_url}</a>) (required if \"{parent_control}\" is set)"
+"\"{docs_url}\">{docs_url}</a>)"
 msgstr ""
-"Md5-nøgle 1 (32 tegn) (jf. <a target=“_blank” rel=“noopener” "
-"href=“{docs_url}”>{docs_url}</a>) (påkrævet hvis “{parent_control}” er sat)"
+"MD5-nøgle 1 (32 tegn) (jf. <a target=“_blank” rel=“noopener” "
+"href=“{docs_url}”>{docs_url}</a>)"
 
 #: pretix_paymentdibs/payment.py:192 pretix_paymentdibs/payment.py:204
 msgid "MD5-control of payments"
-msgstr "Kontrol af betalinger med md5-koder"
+msgstr "Kontrol af betalinger med MD5-koder"
 
 #: pretix_paymentdibs/payment.py:197
 msgid "MD5 key 2"
-msgstr "Md5-nøgle 1"
+msgstr "MD5-nøgle 1"
 
 #: pretix_paymentdibs/payment.py:200
 #, python-brace-format
 msgid ""
 "MD5 key 2 (32 characters) (cf. <a target=\"_blank\" rel=\"noopener\" href="
-"\"{docs_url}\">{docs_url}</a>) (required if \"{parent_control}\" is set)"
+"\"{docs_url}\">{docs_url}</a>)"
 msgstr ""
-"Md5-nøgle 2 (32 tegn) (jf. <a target=“_blank” rel=“noopener” "
-"href=“{docs_url}”>{docs_url}</a>) (påkrævet hvis “{parent_control}” er sat)"
+"MD5-nøgle 2 (32 tegn) (jf. <a target=“_blank” rel=“noopener” "
+"href=“{docs_url}”>{docs_url}</a>)"
 
 #: pretix_paymentdibs/payment.py:209
 msgid "Payment page design"
-msgstr ""
+msgstr "Betalingssidedesign"
 
 #: pretix_paymentdibs/payment.py:211
 msgid "Default"
@@ -107,15 +105,16 @@ msgstr ""
 
 #: pretix_paymentdibs/payment.py:223
 msgid "API Username"
-msgstr ""
+msgstr "API-brugernavn"
 
 #: pretix_paymentdibs/payment.py:225 pretix_paymentdibs/payment.py:233
 msgid "Required for refunds. Can be set up at Setup > User Setup > API users."
 msgstr ""
+"Påkrævet ift. refunderinger. Indstilles på Setup > User Setup > API users."
 
 #: pretix_paymentdibs/payment.py:231
 msgid "API Password"
-msgstr ""
+msgstr "API-adgangskode"
 
 #: pretix_paymentdibs/payment.py:310
 #, python-brace-format
@@ -123,19 +122,21 @@ msgid ""
 "Missing DIBS api username and password for merchant {merchant}. Order cannot "
 "be refunded in DIBS."
 msgstr ""
+"Manglende DIBS-API-brugernavn og -adgangskode for merchant {merchant}. "
+"Ordren kan ikke refunderes i DIBS."
 
 #: pretix_paymentdibs/payment.py:330
 #, python-brace-format
 msgid "Error refunding in DIBS ({status}; {result}; {message})"
-msgstr ""
+msgstr "Fejl ifm. refundering i DIBS ({status}; {result}; {message})"
 
 #: pretix_paymentdibs/payment.py:439
 msgid "There was an error sending the confirmation mail."
-msgstr ""
+msgstr "Der opstod en fejl ifm. afsendelse af bekræftelsesmail."
 
 #: pretix_paymentdibs/signals.py:19
 msgid "DIBS reported a status code: {}"
-msgstr ""
+msgstr "DIBS rapporterede en statuskode: {}"
 
 #: pretix_paymentdibs/templates/pretix_paymentdibs/checkout_confirm.html:3
 msgid "You will be redirected to DIBS after placing your order."
@@ -143,31 +144,27 @@ msgstr "Du bliver viderestillet til DIBS efter at have afgivet din ordre."
 
 #: pretix_paymentdibs/templates/pretix_paymentdibs/control.html:6
 msgid "Transaction"
-msgstr ""
+msgstr "Transaktion"
 
 #: pretix_paymentdibs/templates/pretix_paymentdibs/control.html:8
 msgid "Payment type"
-msgstr ""
+msgstr "Betalingstype"
 
 #: pretix_paymentdibs/templates/pretix_paymentdibs/control.html:10
 msgid "Card number"
 msgstr "Kortnummer"
 
 #: pretix_paymentdibs/templates/pretix_paymentdibs/control.html:12
-#, fuzzy
-#| msgid "Card number"
 msgid "Card expiry"
-msgstr "Kortnummer"
+msgstr "Udløbsdato"
 
 #: pretix_paymentdibs/templates/pretix_paymentdibs/control.html:14
-#, fuzzy
-#| msgid "Card number"
 msgid "Card country"
-msgstr "Kortnummer"
+msgstr "Land"
 
 #: pretix_paymentdibs/templates/pretix_paymentdibs/control.html:16
 msgid "Status code"
-msgstr ""
+msgstr "Statuskode"
 
 #: pretix_paymentdibs/templates/pretix_paymentdibs/mail_text.html:6
 #, python-format
@@ -202,6 +199,7 @@ msgid ""
 "Sorry, there was an error in the payment process. Please check the link in "
 "your emails to continue."
 msgstr ""
+"Der opstod en fejl ifm. betalingen. Tjek linket i din mail for at fortsætte."
 
 #~ msgid "DIBS"
 #~ msgstr "DIBS"
