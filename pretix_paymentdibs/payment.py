@@ -190,20 +190,9 @@ class DIBS(BasePaymentProvider):
                      docs_url='https://tech.dibspayment.com/D2/Hosted/Input_parameters/Standard'
                  )
              )),
-            ('use_md5key',
-             forms.BooleanField(
-                 label=_('MD5-control of payments'),
-                 required=False,
-                 initial=False,
-                 help_text=_('MD5-control of payments'
-                             ' (cf. <a target="_blank" rel="noopener" href="{docs_url}">{docs_url}</a>)').format(
-                     docs_url='https://tech.dibspayment.com/D2/API/MD5'
-                 )
-             )),
             ('md5_key1',
              forms.CharField(
                  label=_('MD5 key 1'),
-                 required=False,
                  min_length=32,
                  max_length=32,
                  help_text=_('MD5 key 1 (32 characters)'
@@ -216,7 +205,6 @@ class DIBS(BasePaymentProvider):
             ('md5_key2',
              forms.CharField(
                  label=_('MD5 key 2'),
-                 required=False,
                  min_length=32,
                  max_length=32,
                  help_text=_('MD5 key 2 (32 characters)'
@@ -317,14 +305,13 @@ class DIBS(BasePaymentProvider):
         if self.settings.get('test_mode'):
             payload['test'] = 1
 
-        if self.settings.get('use_md5key'):
-            # https://tech.dibspayment.com/D2/API/MD5
-            key1 = self.settings.get('md5_key1')
-            key2 = self.settings.get('md5_key2')
+        # https://tech.dibspayment.com/D2/API/MD5
+        key1 = self.settings.get('md5_key1')
+        key2 = self.settings.get('md5_key2')
 
-            parameters = 'merchant=' + merchant + '&orderid=' + orderid + '&transact=' + transact + '&amount=' + DIBS.get_amount(refund.amount)
-            md5key = DIBS.md5(key2 + DIBS.md5(key1 + parameters))
-            payload['md5key'] = md5key
+        parameters = 'merchant=' + merchant + '&orderid=' + orderid + '&transact=' + transact + '&amount=' + DIBS.get_amount(refund.amount)
+        md5key = DIBS.md5(key2 + DIBS.md5(key1 + parameters))
+        payload['md5key'] = md5key
 
         (username, password) = self.get_api_authorization()
         if username is None or password is None:
@@ -460,9 +447,6 @@ class DIBS(BasePaymentProvider):
                     raise PaymentException(_('There was an error sending the confirmation mail.'))
 
     def validate_transaction(self, payment, parameters):
-        if not self.settings.get('use_md5key'):
-            return True
-
         # https://tech.dibspayment.com/D2/API/MD5
         key1 = self.settings.get('md5_key1')
         key2 = self.settings.get('md5_key2')
@@ -476,9 +460,6 @@ class DIBS(BasePaymentProvider):
         return parameters['authkey'] == authkey
 
     def _calculate_md5key(self, payment):
-        if not self.settings.get('use_md5key'):
-            return None
-
         # https://tech.dibspayment.com/D2/Hosted/Md5_calculation
         key1 = self.settings.get('md5_key1')
         key2 = self.settings.get('md5_key2')
