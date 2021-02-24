@@ -231,6 +231,7 @@ class DIBS(BasePaymentProvider):
             ('api_user',
              forms.CharField(
                  label=_('API Username'),
+                 required=False,
                  help_text=_('Required for refunds. Can be set up at Setup > User Setup > API users.').format(
                      docs_url='https://tech.dibspayment.com/D2/Hosted/Input_parameters/Standard'
                  )
@@ -238,6 +239,7 @@ class DIBS(BasePaymentProvider):
             ('api_password',
              SecretKeySettingsField(
                  label=_('API Password'),
+                 required=False,
                  help_text=_('Required for refunds. Can be set up at Setup > User Setup > API users.').format(
                      docs_url='https://tech.dibspayment.com/D2/Hosted/Input_parameters/Standard'
                  )
