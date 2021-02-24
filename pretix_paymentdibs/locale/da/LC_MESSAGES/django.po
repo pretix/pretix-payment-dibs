@@ -53,10 +53,10 @@ msgstr "MD5-nøgle 1"
 #, python-brace-format
 msgid ""
 "MD5 key 1 (32 characters) (cf. <a target=\"_blank\" rel=\"noopener\" href="
-"\"{docs_url}\">{docs_url}</a>) (required if \"{parent_control}\" is set)"
+"\"{docs_url}\">{docs_url}</a>)"
 msgstr ""
 "MD5-nøgle 1 (32 tegn) (jf. <a target=“_blank” rel=“noopener” "
-"href=“{docs_url}”>{docs_url}</a>) (påkrævet hvis “{parent_control}” er sat)"
+"href=“{docs_url}”>{docs_url}</a>)"
 
 #: pretix_paymentdibs/payment.py:192 pretix_paymentdibs/payment.py:204
 msgid "MD5-control of payments"
@@ -70,10 +70,10 @@ msgstr "MD5-nøgle 1"
 #, python-brace-format
 msgid ""
 "MD5 key 2 (32 characters) (cf. <a target=\"_blank\" rel=\"noopener\" href="
-"\"{docs_url}\">{docs_url}</a>) (required if \"{parent_control}\" is set)"
+"\"{docs_url}\">{docs_url}</a>)"
 msgstr ""
 "MD5-nøgle 2 (32 tegn) (jf. <a target=“_blank” rel=“noopener” "
-"href=“{docs_url}”>{docs_url}</a>) (påkrævet hvis “{parent_control}” er sat)"
+"href=“{docs_url}”>{docs_url}</a>)"
 
 #: pretix_paymentdibs/payment.py:209
 msgid "Payment page design"

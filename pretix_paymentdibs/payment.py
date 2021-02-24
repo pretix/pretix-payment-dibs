@@ -186,8 +186,7 @@ class DIBS(BasePaymentProvider):
                  min_length=32,
                  max_length=32,
                  help_text=_('MD5 key 1 (32 characters)'
-                             ' (cf. <a target="_blank" rel="noopener" href="{docs_url}">{docs_url}</a>)'
-                             ' (required if "{parent_control}" is set)').format(
+                             ' (cf. <a target="_blank" rel="noopener" href="{docs_url}">{docs_url}</a>)').format(
                      docs_url='https://tech.dibspayment.com/D2/API/MD5',
                      parent_control=_('MD5-control of payments')
                  )
@@ -198,8 +197,7 @@ class DIBS(BasePaymentProvider):
                  min_length=32,
                  max_length=32,
                  help_text=_('MD5 key 2 (32 characters)'
-                             ' (cf. <a target="_blank" rel="noopener" href="{docs_url}">{docs_url}</a>)'
-                             ' (required if "{parent_control}" is set)').format(
+                             ' (cf. <a target="_blank" rel="noopener" href="{docs_url}">{docs_url}</a>)').format(
                      docs_url='https://tech.dibspayment.com/D2/API/MD5',
                      parent_control=_('MD5-control of payments')
                  )
