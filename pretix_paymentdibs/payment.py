@@ -11,7 +11,7 @@ from django import forms
 from django.contrib import messages
 from django.template.loader import get_template
 from django.utils.timezone import now
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 from pretix.base.forms import SecretKeySettingsField
 from pretix.base.models import Event, Order, Organizer, OrderPayment, Quota, OrderRefund
@@ -325,7 +325,7 @@ class DIBS(BasePaymentProvider):
             refund.state = OrderRefund.REFUND_STATE_FAILED
             refund.execution_date = now()
             refund.save()
-            raise PaymentException(_('Error refunding in DIBS ({status}; {result}; {message})'.format(status=status, result=result, message=message.strip())))
+            raise PaymentException(_('Error refunding in DIBS ({status}; {result}; {message})'.format(status=status, result=result, message=message.strip() if message else '')))
 
     def get_api_authorization(self):
         return self.settings.get('api_user'), self.settings.get('api_password')
