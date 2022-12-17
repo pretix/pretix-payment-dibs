@@ -3,7 +3,7 @@ from distutils.command.build import build
 
 from django.core import management
 from setuptools import setup, find_packages
-from pretix_pyamentdibs import __version__
+from pretix_paymentdibs import __version__
 
 
 try:
