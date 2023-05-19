@@ -468,3 +468,15 @@ class DIBS(BasePaymentProvider):
     def md5(s):
         """Calculate md5 hash of a string"""
         return hashlib.md5(s.encode('utf-8')).hexdigest()
+
+    def matching_id(self, payment: OrderPayment):
+        try:
+            return payment.info_data["transact"]
+        except Exception:
+            return
+
+    def refund_matching_id(self, refund: OrderRefund):
+        try:
+            return refund.info_data["transact"][0]
+        except Exception:
+            return
